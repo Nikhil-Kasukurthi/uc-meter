@@ -6,7 +6,31 @@
 <meta name="theme-color" content="#141518">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>UC Pocket Meter</title>
+<title>UC Pocket Meter · Light meter for the Olympus 35 UC</title>
+<meta name="description" content="A free phone light meter for the Olympus 35 UC rangefinder. Meter a scene with your phone camera, match the aperture and shutter rings, and see how many stops you are over or under.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://meter.bluenotebook.io/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Blue Notebook">
+<meta property="og:title" content="UC Pocket Meter">
+<meta property="og:description" content="A free phone light meter for the Olympus 35 UC rangefinder.">
+<meta property="og:url" content="https://meter.bluenotebook.io/">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "UC Pocket Meter",
+  "url": "https://meter.bluenotebook.io/",
+  "description": "A phone light meter for the Olympus 35 UC rangefinder. It meters from a photo's EXIF data on iPhone and from the live camera on Android Chrome.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "iOS, Android",
+  "browserRequirements": "Requires a camera and JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Nikhil Kasukurthi", "url": "https://bluenotebook.io/" },
+  "isPartOf": { "@type": "WebSite", "name": "Blue Notebook", "url": "https://bluenotebook.io/" }
+}
+</script>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -40,7 +64,7 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 .bar{display:flex;align-items:center;gap:8px}
 .brand{font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;margin-right:auto}
 .brand span{color:var(--accent)}
-.pill{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:6px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--body)}
+.pill{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:6px 9px;border-radius:999px;border:1px solid var(--rule);background:var(--body)}
 .icon{all:unset;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--rule);background:var(--body)}
 .icon svg{width:17px;height:17px;stroke:var(--ink);fill:none;stroke-width:1.8}
 
@@ -129,6 +153,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .shoot{all:unset;cursor:pointer;flex:1;text-align:center;padding:11px 12px;border-radius:9px;background:var(--ink);color:var(--body);font-weight:600;font-size:.9rem;display:flex;align-items:center;justify-content:center;gap:8px}
 .shoot svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
 .hold{padding:0 20px}
+.vf-tag:empty{display:none}
+.note a{color:var(--accent)}
+.icon b{font-family:var(--display);font-size:1rem;font-weight:700}
 .dial-box.lens .it.flash{color:#E0352B}
 .fix{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .fix button{all:unset;cursor:pointer;text-align:center;padding:7px 6px;border-radius:7px;border:1px solid rgba(237,235,230,.22);font-size:.78rem;color:var(--leather-ink)}
@@ -139,6 +166,46 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .iso-grid button.minor{font-size:1rem;color:var(--ink-2)}
 .iso-grid button[aria-pressed="true"]{background:var(--ink);color:var(--body);border-color:var(--ink)}
 </style>
+<script type="text/javascript" id="posthog-js">
+  !(function(t, e) {
+    var o, n, p, r;
+    e.__SV ||
+      ((window.posthog = e),
+      (e._i = []),
+      (e.init = function(i, s, a) {
+        function g(t, e) {
+          var o = e.split('.');
+          2 == o.length && ((t = t[o[0]]), (e = o[1])),
+            (t[e] = function() {
+              t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
+            });
+        }
+        ((p = t.createElement('script')).type = 'text/javascript'),
+          (p.crossOrigin = 'anonymous'),
+          (p.async = true),
+          (p.src = s.api_host + '/static/array.js'),
+          (r = t.getElementsByTagName('script')[0]).parentNode.insertBefore(p, r);
+        var u = e;
+        void 0 !== a ? (u = e[a] = []) : (a = 'posthog');
+        u.people = u.people || [];
+        u.toString = function(t) {
+          var e = 'posthog';
+          return 'posthog' !== a && (e += '.' + a), t || (e += ' (stub)'), e;
+        };
+        u.people.toString = function() {
+          return u.toString(1) + '.people (stub)';
+        };
+        o =
+          'capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId'.split(
+            ' '
+          );
+        for (n = 0; n < o.length; n++) g(u, o[n]);
+        e._i.push([i, s, a]);
+      }),
+      (e.__SV = 1));
+  })(document, window.posthog || []);
+  posthog.init('phc_r3VV1oFD7VoyArVBrtaZErNO8e7zWiCe00CGaSW9nU2', { api_host: 'https://us.i.posthog.com', defaults: '2025-05-24' });
+</script>
 </head>
 <body>
 <div class="app">
@@ -146,6 +213,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="brand">UC <span>Meter</span></div>
     <button class="pill" id="isoBtn" aria-label="Film speed">ASA 400</button>
     <button class="pill" id="pattern" aria-label="Metering pattern">SPOT</button>
+    <button class="icon" id="aboutBtn" aria-label="About"><b>i</b></button>
     <button class="icon" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
   </div>
 
@@ -153,7 +221,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <video id="video" playsinline muted autoplay hidden></video>
     <img id="photo" alt="" hidden>
     <div class="spot"></div>
-    <div class="vf-tag" id="vfTag">No reading yet</div>
+    <div class="vf-tag" id="vfTag"></div>
     <div class="tags"><span id="clipTag" hidden>CLIPPED</span><span id="holdTag" hidden>HOLD</span></div>
     <button class="start" id="startBtn"><i id="startLabel">Start meter</i><small id="startHint"></small></button>
   </div>
@@ -194,6 +262,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </form>
 </dialog>
 
+<dialog id="about">
+  <form method="dialog" class="sheet">
+    <h2>About <button class="icon" aria-label="Close">✕</button></h2>
+    <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
+    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Meter with photo</b> and photograph your subject. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
+    <p class="note"><b>How it measures.</b> On iPhone, the page reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
+    <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
+  </form>
+</dialog>
+
 <dialog id="sheet">
   <form method="dialog" class="sheet">
     <h2>Calibration <button class="icon" aria-label="Close">✕</button></h2>
@@ -220,6 +298,7 @@ const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="M
 
 const $=id=>document.getElementById(id);
 const log2=Math.log2;
+const ph=(e,p)=>{try{window.posthog?.capture(e,p)}catch(_){}};
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const fmtT=t=>t>=1?(Math.round(t*10)/10)+'"':"1/"+Math.round(1/t);
@@ -336,11 +415,13 @@ async function meterPhoto(file){
   if(!exif||!exif.t||!exif.N||!exif.iso){
     showErr(exif?"The photo has no exposure data. Use the Scene EV dial below.":"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
     $("srcNote").innerHTML="<b>Last reading:</b> photo without exposure data ("+(file.type||"unknown type")+").";
+    ph("meter_photo",{ok:false,reason:exif?"no_exposure_data":"no_exif"});
     showFallback();return;
   }
   const bmp=await createImageBitmap(file);
   const {Y,clip}=measure(bmp,bmp.width,bmp.height);bmp.close?.();
   s.ev=evFrom(exif.N,exif.t,exif.iso,Y);
+  ph("meter_photo",{ok:true,clipped:clip>=0.25,pattern:s.pattern});
   if(s.hold)toggleHold();
   $("hold").disabled=false;
   $("clipTag").hidden=clip<0.25;
@@ -407,6 +488,7 @@ async function startLive(){
     }
     if(src==="none"){const st=track.getSettings();if(st.exposureTime&&st.iso)src="auto"}
     $("startBtn").hidden=true;
+    ph("meter_live",{source:src});
     if(src==="none"){
       track.stop();video.hidden=true;
       showErr("This browser gives no live exposure data. Use Meter with photo.");
@@ -416,6 +498,7 @@ async function startLive(){
     requestAnimationFrame(tick);
     try{await navigator.wakeLock?.request("screen")}catch(e){}
   }catch(e){
+    ph("meter_live_error",{reason:e.name});
     showErr(e.name==="NotAllowedError"?"Camera access is blocked. Allow the camera for this site in browser settings, then try again.":"The camera did not start: "+e.message);
   }
 }
@@ -478,7 +561,7 @@ function isoGrid(){
 }
 $("isoGrid").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
-  s.iso=+b.value;store("ucmeter.iso",s.iso);render();   // the form closes the sheet
+  s.iso=+b.value;store("ucmeter.iso",s.iso);ph("iso_set",{iso:s.iso});render();   // the form closes the sheet
 });
 $("isoBtn").onclick=()=>{isoGrid();$("isoSheet").showModal()};
 
@@ -490,8 +573,8 @@ function toggleHold(){
   render();
 }
 $("hold").onclick=toggleHold;
-$("fixT").onclick=()=>{if(fixes.t)speedDial.go(SPEEDS.indexOf(fixes.t),true)};
-$("fixN").onclick=()=>{if(fixes.N)apDial.go(APS.indexOf(fixes.N),true)};
+$("fixT").onclick=()=>{if(fixes.t)ph("fix_applied",{ring:"shutter"});if(fixes.t)speedDial.go(SPEEDS.indexOf(fixes.t),true)};
+$("fixN").onclick=()=>{if(fixes.N)ph("fix_applied",{ring:"aperture"});if(fixes.N)apDial.go(APS.indexOf(fixes.N),true)};
 $("pattern").onclick=()=>{
   s.pattern=s.pattern==="spot"?"avg":"spot";
   $("pattern").textContent=s.pattern==="spot"?"SPOT":"CENTER";
@@ -501,7 +584,8 @@ $("shoot").onclick=()=>$("file").click();
 $("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)meterPhoto(f).catch(err=>showErr("The photo could not be read: "+err.message))};
 $("startBtn").onclick=()=>IOS?$("file").click():startLive();
 $("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
-for(const id of ["sheet","isoSheet"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
+$("aboutBtn").onclick=()=>{$("about").showModal();ph("about_opened")};
+for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
 addEventListener("resize",()=>[apDial,speedDial,evDial].forEach(d=>d.sync()));
 
 if(IOS){

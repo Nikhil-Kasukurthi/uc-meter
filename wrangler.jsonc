@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "uc-meter",
+  "account_id": "876c867f79a7ad2a13510da1aa064cba",
   "compatibility_date": "2025-11-17",
   // Serve only on the custom domain, not on workers.dev
   "workers_dev": false,
