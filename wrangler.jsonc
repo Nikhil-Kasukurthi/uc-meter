@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "uc-meter",
+  "compatibility_date": "2025-11-17",
+  // Serve only on the custom domain, not on workers.dev
+  "workers_dev": false,
+  "assets": {
+    "directory": "./public"
+  },
+  // Cloudflare creates the DNS record for a custom domain in the same zone
+  "routes": [
+    { "pattern": "meter.bluenotebook.io", "custom_domain": true }
+  ]
+}

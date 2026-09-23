@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141518">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>UC Pocket Meter</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#E6E5E1;--body:#F4F3F0;--ink:#141518;--ink-2:#55575E;--rule:#C9C8C3;
+  --leather:#1C1D21;--leather-ink:#EDEBE6;--accent:#1646A8;--slow:#C07A0A;--warn:#C23A2B;--ok:#2F7D4F;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --sans:"Instrument Sans",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --item:56px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --ground:#101114;--body:#191A1E;--ink:#ECEAE4;--ink-2:#9C9EA5;--rule:#2C2E34;
+    --leather:#050507;--leather-ink:#ECEAE4;--accent:#7FA3F2;--slow:#E4A63A;--warn:#F07262;--ok:#6CC390;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-tap-highlight-color:transparent}
+body{height:100dvh;overflow:hidden;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(12px + env(safe-area-inset-bottom,0px))}
+.app{height:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+button{font:inherit;color:inherit}
+button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:8px}
+.brand{font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;margin-right:auto}
+.brand span{color:var(--accent)}
+.pill{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:6px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--body)}
+.icon{all:unset;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--rule);background:var(--body)}
+.icon svg{width:17px;height:17px;stroke:var(--ink);fill:none;stroke-width:1.8}
+
+/* small aiming strip */
+.vf{position:relative;flex:none;height:clamp(64px,13dvh,110px);border-radius:8px;overflow:hidden;background:var(--leather)}
+.vf video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.spot{position:absolute;left:50%;top:50%;height:44%;aspect-ratio:1;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.9);border-radius:50%;pointer-events:none}
+.vf.avg .spot{height:70%;aspect-ratio:1.6;border-radius:4px;border-style:dashed}
+.vf-tag{position:absolute;left:6px;bottom:5px;font-family:var(--mono);font-size:.62rem;color:#fff;background:rgba(0,0,0,.55);padding:2px 5px;border-radius:3px;pointer-events:none}
+.tags{position:absolute;right:6px;top:5px;display:flex;gap:4px;pointer-events:none}
+.tags span{font-family:var(--mono);font-size:.62rem;color:#fff;padding:2px 6px;border-radius:3px}
+.dial-box.lens{background:#141417;border-color:#141417}
+.dial-box.lens .cap{color:#EDEBE6;opacity:.55}
+.dial-box.lens::before{border:none;width:2px;height:9px;background:#E0352B;top:0}
+.dial-box.lens::after{border:none;width:6px;height:6px;border-radius:50%;background:#E0352B;bottom:3px}
+.dial-box.lens .it{color:rgba(237,235,230,.5);background-image:linear-gradient(rgba(237,235,230,.3),rgba(237,235,230,.3))}
+.dial-box.lens .it.on{color:#F4F2EC;background-image:none}
+.dial-box.lens .it.minor{font-size:1.4rem}
+#holdTag{background:var(--warn)}#clipTag{background:var(--slow)}
+.start{all:unset;cursor:pointer;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--leather-ink);font-weight:600}
+.start i{font-style:normal;padding:9px 18px;border-radius:999px;background:var(--leather-ink);color:var(--leather)}
+.err{font-size:.8rem;color:var(--warn);margin:0}
+
+/* readout takes the free space */
+.readout{flex:1;min-height:0;background:var(--leather);color:var(--leather-ink);border-radius:12px;padding:12px 16px;
+  display:flex;flex-direction:column;justify-content:center;gap:8px}
+.pair{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.big{font-family:var(--display);font-weight:600;font-size:clamp(2.8rem,11dvh,5rem);line-height:.9;font-variant-numeric:tabular-nums}
+.big small{font-size:.48em;opacity:.6;margin-right:2px}
+.big.locked{opacity:.5}
+.sep{font-family:var(--display);font-size:2rem;opacity:.3}
+.meta{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:.72rem;opacity:.8;font-variant-numeric:tabular-nums}
+.status{font-size:.82rem;display:flex;gap:8px;align-items:center;min-height:1.3em}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.status.bad .dot{background:var(--warn)}
+.status.idle .dot{background:var(--ink-2)}
+.needle{position:relative;height:32px}
+.needle .track{position:absolute;left:0;right:0;top:10px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,var(--warn) 0 21%,rgba(255,255,255,.18) 21% 45%,var(--ok) 45% 55%,rgba(255,255,255,.18) 55% 79%,var(--warn) 79%)}
+.needle .ptr{position:absolute;top:1px;width:2px;height:22px;background:var(--leather-ink);transform:translateX(-1px);transition:left .3s cubic-bezier(.2,.8,.2,1)}
+.needle .ticks{position:absolute;left:0;right:0;top:19px;font-family:var(--mono);font-size:.6rem;opacity:.7}
+.needle .ticks span{position:absolute;transform:translateX(-50%)}
+
+/* mode + hold */
+.row{display:flex;gap:8px}
+.seg{flex:1;display:grid;grid-template-columns:1fr 1fr;background:var(--body);border:1px solid var(--rule);border-radius:9px;padding:3px;gap:3px}
+.seg button{all:unset;text-align:center;padding:9px 4px;border-radius:6px;font-size:.84rem;font-weight:500;cursor:pointer;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--body)}
+.hold{all:unset;cursor:pointer;text-align:center;padding:0 16px;border-radius:9px;background:var(--accent);color:var(--body);font-weight:600;font-size:.88rem;display:grid;place-items:center}
+.hold[aria-pressed="true"]{background:var(--warn)}
+.hold:disabled{opacity:.4;cursor:default}
+
+/* swipe dial: a scroll-snap strip, read off a fixed centre mark */
+.dial-box{position:relative;background:var(--body);border:1px solid var(--rule);border-radius:10px;flex:none}
+.dial-box .cap{position:absolute;left:10px;top:6px;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);font-weight:600;pointer-events:none;z-index:1}
+.dial-box::before,.dial-box::after{content:"";position:absolute;left:50%;width:0;height:0;border:6px solid transparent;transform:translateX(-50%);z-index:1;pointer-events:none}
+.dial-box::before{top:0;border-top-color:var(--accent)}
+.dial-box::after{bottom:0;border-bottom-color:var(--accent)}
+.dial{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.dial::-webkit-scrollbar{display:none}
+.dial .pad{flex:none;width:calc(50% - var(--item)/2)}
+.dial .it{flex:none;width:var(--item);scroll-snap-align:center;text-align:center;cursor:pointer;user-select:none;
+  font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink-2);
+  padding:18px 0 12px;font-size:1.35rem;line-height:1;
+  background:linear-gradient(var(--rule),var(--rule)) center bottom 4px/1.5px 7px no-repeat}
+.dial.small .it{padding:16px 0 10px;font-size:1.15rem}
+.dial .it.slow{color:var(--slow)}
+.dial .it.on{color:var(--accent);font-size:1.7rem;background-image:linear-gradient(var(--accent),var(--accent))}
+.dial.small .it.on{font-size:1.4rem}
+
+/* settings sheet */
+dialog{border:none;border-radius:16px 16px 0 0;margin:auto auto 0;width:100%;max-width:440px;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));
+  background:var(--ground);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.sheet{display:flex;flex-direction:column;gap:12px}
+.sheet h2{font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:.04em;margin:0;display:flex;justify-content:space-between;align-items:center}
+.note{font-size:.78rem;color:var(--ink-2);line-height:1.5;margin:0}
+.note b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.vf img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.start{flex-direction:column;gap:6px}
+.start small{font-weight:400;font-size:.72rem;opacity:.7}
+.shoot{all:unset;cursor:pointer;flex:1;text-align:center;padding:11px 12px;border-radius:9px;background:var(--ink);color:var(--body);font-weight:600;font-size:.9rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.shoot svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.hold{padding:0 20px}
+.dial-box.lens .it.flash{color:#E0352B}
+.fix{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fix button{all:unset;cursor:pointer;text-align:center;padding:7px 6px;border-radius:7px;border:1px solid rgba(237,235,230,.22);font-size:.78rem;color:var(--leather-ink)}
+.fix button b{font-family:var(--display);font-weight:600;font-size:1.05rem;margin-left:5px}
+.fix button:disabled{opacity:.35;cursor:default}
+.iso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.iso-grid button{all:unset;cursor:pointer;text-align:center;padding:12px 0;border-radius:8px;border:1px solid var(--rule);background:var(--body);font-family:var(--display);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.iso-grid button.minor{font-size:1rem;color:var(--ink-2)}
+.iso-grid button[aria-pressed="true"]{background:var(--ink);color:var(--body);border-color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <div class="brand">UC <span>Meter</span></div>
+    <button class="pill" id="isoBtn" aria-label="Film speed">ASA 400</button>
+    <button class="pill" id="pattern" aria-label="Metering pattern">SPOT</button>
+    <button class="icon" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+  </div>
+
+  <div class="vf" id="vf">
+    <video id="video" playsinline muted autoplay hidden></video>
+    <img id="photo" alt="" hidden>
+    <div class="spot"></div>
+    <div class="vf-tag" id="vfTag">No reading yet</div>
+    <div class="tags"><span id="clipTag" hidden>CLIPPED</span><span id="holdTag" hidden>HOLD</span></div>
+    <button class="start" id="startBtn"><i id="startLabel">Start meter</i><small id="startHint"></small></button>
+  </div>
+  <p class="err" id="err" hidden></p>
+
+  <section class="readout" aria-live="polite">
+    <div class="pair">
+      <div class="big" id="outA"><small>f/</small>5.6</div>
+      <div class="sep">·</div>
+      <div class="big" id="outT">1/125</div>
+    </div>
+    <div class="needle" aria-hidden="true">
+      <div class="track"></div>
+      <div class="ptr" id="ptr" style="left:50%"></div>
+      <div class="ticks" id="ticks"></div>
+    </div>
+    <div class="meta"><span id="evLine">EV –</span><span id="exactLine"></span></div>
+    <div class="status idle" id="status"><span class="dot"></span><span id="statusText">Take a reading to check your settings</span></div>
+    <div class="fix"><button id="fixT" disabled>Speed</button><button id="fixN" disabled>Aperture</button></div>
+  </section>
+
+  <div class="row">
+    <button class="shoot" id="shoot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Meter with photo</button>
+    <button class="hold" id="hold" aria-pressed="false" disabled>Hold</button>
+  </div>
+  <input type="file" id="file" accept="image/jpeg,image/*" capture="environment" hidden>
+
+  <div class="dial-box lens"><span class="cap">Aperture ring</span><div class="dial" id="apDial"></div></div>
+  <div class="dial-box lens"><span class="cap">Shutter ring</span><div class="dial" id="speedDial"></div></div>
+  <div class="dial-box lens" id="evBox" hidden><span class="cap">Scene EV · Sunny 16</span><div class="dial small" id="evDial"></div></div>
+</div>
+
+<dialog id="isoSheet">
+  <form method="dialog" class="sheet">
+    <h2>Film speed (ASA) <button class="icon" aria-label="Close">✕</button></h2>
+    <div class="iso-grid" id="isoGrid"></div>
+    <p class="note">Set the same value on the ASA dial on top of the camera.</p>
+  </form>
+</dialog>
+
+<dialog id="sheet">
+  <form method="dialog" class="sheet">
+    <h2>Calibration <button class="icon" aria-label="Close">✕</button></h2>
+    <div class="dial-box lens"><span class="cap">Offset (EV)</span><div class="dial small" id="offDial"></div></div>
+    <p class="note">Calibrate once. In full sun, meter a grey card or the clear north sky. It should read about <b>EV 15</b>. If it does not, swipe the offset until it does. The phone saves the value.</p>
+    <div class="dial-box lens" id="nBox"><span class="cap">Phone lens f-number · live mode</span><div class="dial small" id="nDial"></div></div>
+    <p class="note"><b>Photo metering:</b> the page reads shutter, ISO and f-number from the photo, so it needs no lens setting. Use the 1× lens and switch off Live Photo and Night mode.</p>
+    <p class="note" id="srcNote"><b>Last reading:</b> none yet.</p>
+  </form>
+</dialog>
+
+<script>
+const SPEEDS=[1,1/2,1/4,1/8,1/15,1/30,1/60,1/125,1/250,1/500];
+const APS=[1.7,2.8,4,5.6,8,11,16];            // marks on the 35 UC aperture ring
+const ISO_MAJOR=[25,50,100,200,400,800];     // numbered on the ASA dial; the rest are dots
+const ISOS=[25,32,40,50,64,80,100,125,160,200,250,320,400,500,640,800];
+const EVS=Array.from({length:33},(_,i)=>1+i/2);                    // EV 1–17 in half stops
+const LENS_N=Array.from({length:15},(_,i)=>Math.round((1.4+i/10)*10)/10);
+const OFFS=Array.from({length:19},(_,i)=>(i-9)/3);                 // −3 … +3 EV in thirds
+const MID_GREY=0.18;
+const T_MAX=1/15;
+// iPhone and iPad browsers give a web page no live exposure data, so they meter from a photo.
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+
+const $=id=>document.getElementById(id);
+const log2=Math.log2;
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const fmtT=t=>t>=1?(Math.round(t*10)/10)+'"':"1/"+Math.round(1/t);
+const fmtN=n=>n<10?n.toFixed(1).replace(/\.0$/,""):Math.round(n)+"";
+const fmtThird=v=>{const n=Math.round(v*3),w=Math.trunc(Math.abs(n)/3),f=["","⅓","⅔"][Math.abs(n)%3];return n===0?"0":(n<0?"−":"+")+(w||"")+f};
+
+const s={N:5.6,t:1/125,iso:400,ev:null,hold:false,held:null,pattern:"spot"};
+const cal={N:1.8,off:0};
+try{Object.assign(cal,JSON.parse(localStorage.getItem("ucmeter.cal")||"{}"))}catch(e){}
+try{const g=k=>+localStorage.getItem(k);if(ISOS.includes(g("ucmeter.iso")))s.iso=g("ucmeter.iso");if(APS.includes(g("ucmeter.N")))s.N=g("ucmeter.N");const t=SPEEDS.find(v=>Math.abs(v-g("ucmeter.t"))<1e-9);if(t)s.t=t}catch(e){}
+const store=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+
+/* ---------- swipe dial ---------- */
+function Dial(el,{values,format,value,onChange,label,cls}){
+  el.tabIndex=0;el.setAttribute("role","slider");el.setAttribute("aria-label",label);
+  el.innerHTML='<div class="pad"></div>'+values.map((v,i)=>`<div class="it${cls&&cls(v)?" "+cls(v):""}" data-i="${i}">${format(v)}</div>`).join("")+'<div class="pad"></div>';
+  const items=[...el.querySelectorAll(".it")];
+  let idx=Math.max(0,values.indexOf(value)),raf=0;
+  const w=()=>items[0].offsetWidth||56;
+  function mark(i){
+    if(i===idx&&items[i].classList.contains("on"))return;
+    items[idx]?.classList.remove("on");idx=i;items[i].classList.add("on");
+    el.setAttribute("aria-valuenow",i);el.setAttribute("aria-valuetext",format(values[i]));
+    onChange(values[i]);
+  }
+  el.addEventListener("scroll",()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>mark(clamp(Math.round(el.scrollLeft/w()),0,values.length-1)))},{passive:true});
+  el.addEventListener("click",e=>{const it=e.target.closest(".it");if(it)api.go(+it.dataset.i,true)});
+  el.addEventListener("keydown",e=>{
+    const d={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[e.key];
+    if(d){e.preventDefault();api.go(clamp(idx+d,0,values.length-1),true)}
+  });
+  const api={
+    go(i,smooth){el.scrollTo({left:i*w(),behavior:smooth?"smooth":"auto"});mark(i)},
+    value:()=>values[idx],
+    sync(){api.go(idx,false)}   // call after the dial becomes visible
+  };
+  items[idx].classList.add("on");
+  requestAnimationFrame(()=>api.sync());
+  return api;
+}
+
+/* ---------- luminance ---------- */
+const cv=document.createElement("canvas");cv.width=64;cv.height=48;
+const ctx=cv.getContext("2d",{willReadFrequently:true});
+const lin=c=>(c/=255)<=0.04045?c/12.92:((c+0.055)/1.055)**2.4;
+
+// Mean linear luminance of the metered area (centre crop to 4:3), and the share of clipped pixels.
+function measure(src,sw,sh){
+  const w=cv.width,h=cv.height,k=Math.min(sw/4,sh/3),cw=4*k,ch=3*k;
+  ctx.drawImage(src,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,w,h);
+  const d=ctx.getImageData(0,0,w,h).data;
+  const cx=w/2,cy=h/2,r=h*0.22;
+  let sum=0,wsum=0,clip=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const dx=x+.5-cx,dy=y+.5-cy;
+    let wt;
+    if(s.pattern==="spot"){if(Math.hypot(dx,dy)>r)continue;wt=1}
+    else wt=Math.abs(dx)<w*.25&&Math.abs(dy)<h*.3?3:1;
+    const i=(y*w+x)*4,R=d[i],G=d[i+1],B=d[i+2];
+    sum+=wt*(.2126*lin(R)+.7152*lin(G)+.0722*lin(B));wsum+=wt;
+    if(R>250||G>250||B>250)clip+=wt;
+  }
+  return {Y:clamp(sum/wsum,1e-4,1),clip:clip/wsum};
+}
+// EV at ISO 100 from the settings a frame was taken with, plus how far the metered area is from mid grey.
+const evFrom=(N,t,iso,Y)=>log2(N*N/t)-log2(iso/100)-log2(MID_GREY/Y)+cal.off;
+
+/* ---------- photo metering (iPhone, and any phone) ---------- */
+// Minimal EXIF reader: ExposureTime, FNumber, ISO, focal length, model.
+function readExif(buf){
+  const v=new DataView(buf);
+  if(v.getUint16(0)!==0xFFD8)return null;
+  let o=2;
+  while(o+4<v.byteLength){
+    const m=v.getUint16(o);
+    if((m&0xFF00)!==0xFF00)return null;
+    const len=v.getUint16(o+2);
+    if(m===0xFFE1&&v.getUint32(o+4)===0x45786966)return parseTiff(v,o+10);
+    if(m===0xFFDA)return null;          // image data starts, no EXIF block
+    o+=2+len;
+  }
+  return null;
+}
+function parseTiff(v,t){
+  const le=v.getUint16(t)===0x4949,u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le);
+  const out={};
+  function ifd(p,want){
+    const n=u16(p);
+    for(let i=0;i<n;i++){
+      const e=p+2+i*12,tag=u16(e),type=u16(e+2),cnt=u32(e+4),val=e+8;
+      if(tag===0x8769){out._exif=t+u32(val);continue}
+      const key=want[tag];if(!key)continue;
+      const ptr=cnt*({2:1,3:2,4:4,5:8,10:8}[type]||1)>4?t+u32(val):val;
+      if(type===5)out[key]=u32(ptr)/u32(ptr+4);
+      else if(type===10)out[key]=v.getInt32(ptr,le)/v.getInt32(ptr+4,le);
+      else if(type===3)out[key]=u16(ptr);
+      else if(type===4)out[key]=u32(ptr);
+      else if(type===2){let str="";for(let j=0;j<cnt-1;j++)str+=String.fromCharCode(v.getUint8(ptr+j));out[key]=str.trim()}
+    }
+  }
+  try{
+    ifd(t+u32(t+4),{0x0110:"model"});
+    if(out._exif)ifd(out._exif,{0x829A:"t",0x829D:"N",0x8827:"iso",0xA405:"focal35"});
+  }catch(e){}
+  return out;
+}
+
+async function meterPhoto(file){
+  $("err").hidden=true;
+  const exif=readExif(await file.arrayBuffer());
+  const img=$("photo");
+  if(img.src)URL.revokeObjectURL(img.src);
+  img.src=URL.createObjectURL(file);img.hidden=false;$("video").hidden=true;$("startBtn").hidden=true;
+  if(!exif||!exif.t||!exif.N||!exif.iso){
+    showErr(exif?"The photo has no exposure data. Use the Scene EV dial below.":"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
+    $("srcNote").innerHTML="<b>Last reading:</b> photo without exposure data ("+(file.type||"unknown type")+").";
+    showFallback();return;
+  }
+  const bmp=await createImageBitmap(file);
+  const {Y,clip}=measure(bmp,bmp.width,bmp.height);bmp.close?.();
+  s.ev=evFrom(exif.N,exif.t,exif.iso,Y);
+  if(s.hold)toggleHold();
+  $("hold").disabled=false;
+  $("clipTag").hidden=clip<0.25;
+  $("vfTag").textContent=`photo ${fmtT(exif.t)} · ISO ${exif.iso} · f/${exif.N.toFixed(1)}`;
+  $("srcNote").innerHTML=`<b>Last reading:</b> ${esc(exif.model||"camera")}, ${fmtT(exif.t)}, ISO ${exif.iso}, f/${exif.N.toFixed(2)}${exif.focal35?`, ${exif.focal35} mm equiv.`:""}. Metered area ${(Y*100).toFixed(1)}% grey.`;
+  render();
+}
+
+/* ---------- live metering (Android Chrome) ---------- */
+const video=$("video");
+let track=null,caps={},src="none";       // "manual" | "auto" | "none"
+let exp={t:1/125,iso:100},busy=false,settleUntil=0,lastAdjust=0;
+
+// exposureTime in the Image Capture spec is in 100-microsecond units.
+// If a browser uses other units, the error is constant, and the offset absorbs it.
+async function applyExp(){
+  busy=true;
+  try{await track.applyConstraints({advanced:[{exposureMode:"manual",exposureTime:exp.t*1e4,iso:exp.iso}]})}
+  finally{busy=false;settleUntil=performance.now()+180}
+}
+// Software auto-exposure: move phone exposure so the metered area sits near mid grey.
+function steer(delta){
+  const now=performance.now();
+  if(busy||now<settleUntil||now-lastAdjust<250||Math.abs(delta)<0.3)return;
+  lastAdjust=now;
+  const product=exp.t*exp.iso*2**(clamp(delta,-4,4)*0.8);
+  const tMin=caps.exposureTime.min/1e4,tMax=Math.min(caps.exposureTime.max/1e4,T_MAX);
+  const isoMin=caps.iso.min,isoMax=caps.iso.max;
+  let iso=Math.max(isoMin,Math.min(100,isoMax)),t=product/iso;
+  if(t>tMax){t=tMax;iso=clamp(product/t,isoMin,isoMax)}
+  if(t<tMin){t=tMin;iso=isoMin}
+  if(Math.abs(log2(t*iso/(exp.t*exp.iso)))<0.1)return;
+  exp={t,iso};
+  applyExp().catch(()=>{});
+}
+function tick(){
+  if(!track||track.readyState!=="live"){$("startBtn").hidden=false;return}
+  if(video.readyState>=2&&!busy&&performance.now()>=settleUntil){
+    const {Y,clip}=measure(video,video.videoWidth,video.videoHeight);
+    let t=null,iso=null;
+    if(src==="manual"){t=exp.t;iso=exp.iso;steer(log2(MID_GREY/Y))}
+    else{const st=track.getSettings();if(st.exposureTime&&st.iso){t=st.exposureTime/1e4;iso=st.iso}}
+    if(t&&iso){
+      const ev=evFrom(cal.N,t,iso,Y);
+      s.ev=s.ev==null?ev:s.ev+0.3*(ev-s.ev);
+      $("vfTag").textContent=`live ${fmtT(t)} · ISO ${Math.round(iso)}${src==="auto"?" · auto":""}`;
+      $("clipTag").hidden=clip<0.25;
+      render();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+async function startLive(){
+  $("err").hidden=true;
+  if(!navigator.mediaDevices?.getUserMedia){showErr("This browser cannot open a live camera. Use Meter with photo.");return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:640},height:{ideal:480}}});
+    video.srcObject=stream;video.hidden=false;$("photo").hidden=true;await video.play();
+    track=stream.getVideoTracks()[0];
+    caps=track.getCapabilities?track.getCapabilities():{};
+    src="none";
+    if(caps.exposureMode?.includes("manual")&&caps.exposureTime&&caps.iso){
+      try{exp={t:1/125,iso:clamp(100,caps.iso.min,caps.iso.max)};await applyExp();src="manual"}catch(e){}
+    }
+    if(src==="none"){const st=track.getSettings();if(st.exposureTime&&st.iso)src="auto"}
+    $("startBtn").hidden=true;
+    if(src==="none"){
+      track.stop();video.hidden=true;
+      showErr("This browser gives no live exposure data. Use Meter with photo.");
+      return;
+    }
+    $("hold").disabled=false;
+    requestAnimationFrame(tick);
+    try{await navigator.wakeLock?.request("screen")}catch(e){}
+  }catch(e){
+    showErr(e.name==="NotAllowedError"?"Camera access is blocked. Allow the camera for this site in browser settings, then try again.":"The camera did not start: "+e.message);
+  }
+}
+
+function showErr(m){$("err").textContent=m;$("err").hidden=false}
+function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value();render()}
+
+/* ---------- exposure maths + display ---------- */
+// Needle: exposure error in stops, −3 at 7%, 0 at 50%, +3 at 93%.
+const posE=d=>50+clamp(d,-3.5,3.5)*43/3;
+const nearest=(list,x)=>list.reduce((a,b)=>Math.abs(log2(b/x))<Math.abs(log2(a/x))?b:a);
+let fixes={t:null,N:null};
+
+function render(){
+  const ev=s.hold?s.held:s.ev;
+  $("outA").innerHTML="<small>f/</small>"+fmtN(s.N);
+  $("outT").textContent=fmtT(s.t);
+  $("isoBtn").textContent="ASA "+s.iso;
+  if(ev==null)return;
+  const evIso=ev+log2(s.iso/100);        // EV at the film speed
+  const d=evIso-log2(s.N*s.N/s.t);       // + means the rings let in too much light
+  const tx=s.N*s.N/2**evIso;             // right speed for the set aperture
+  const nx=Math.sqrt(s.t*2**evIso);      // right aperture for the set speed
+  const st=$("status"),msg=$("statusText");
+  if(Math.abs(d)<=1/3){st.className="status";msg.textContent="Correct exposure."}
+  else{st.className="status bad";msg.textContent=`${d>0?"Over":"Under"} by ${Math.abs(d).toFixed(1)} stops. Turn a ring, or tap a fix below.`}
+  $("ptr").style.left=posE(d)+"%";
+  $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}`;
+  $("exactLine").textContent=d>=0?`+${d.toFixed(1)} EV`:`−${(-d).toFixed(1)} EV`;
+  $("holdTag").hidden=!s.hold;
+
+  // One-tap fixes: change one ring, keep the other.
+  const tOk=tx<=1.4&&tx>=1/700,nOk=nx>=1.7/1.19&&nx<=16*1.19;
+  fixes.t=tOk?nearest(SPEEDS,tx):null;
+  fixes.N=nOk?nearest(APS,nx):null;
+  $("fixT").innerHTML=tOk?`Speed<b>${fmtT(fixes.t)}</b>`:tx>1.4?`Speed<b>B ${tx.toFixed(0)}s</b>`:"Speed<b>too bright</b>";
+  $("fixN").innerHTML=nOk?`Aperture<b>f/${fmtN(fixes.N)}</b>`:nx<1.7?"Aperture<b>too dark</b>":"Aperture<b>too bright</b>";
+  $("fixT").disabled=!tOk||fixes.t===s.t;
+  $("fixN").disabled=!nOk||fixes.N===s.N;
+}
+
+/* ---------- controls ---------- */
+const apDial=Dial($("apDial"),{values:APS,value:s.N,label:"Aperture",format:v=>v,onChange:v=>{s.N=v;store("ucmeter.N",v);render()}});
+const speedDial=Dial($("speedDial"),{values:SPEEDS,value:s.t,label:"Shutter speed",
+  format:v=>v>=1?"1":Math.round(1/v),cls:v=>v===1/30?"flash":"",onChange:v=>{s.t=v;store("ucmeter.t",v);render()}});
+const evDial=Dial($("evDial"),{values:EVS,value:15,label:"Scene EV",format:v=>v%1?Math.floor(v)+"½":v,
+  onChange:v=>{if(!$("evBox").hidden){s.ev=v;render()}}});
+
+function calSet(key,v){
+  const old=cal[key];if(old===v)return;cal[key]=v;
+  // shift the current reading so the change shows at once
+  if(s.ev!=null&&$("evBox").hidden&&(key==="off"||src!=="none"))s.ev+=key==="off"?v-old:2*log2(v/old);
+  store("ucmeter.cal",JSON.stringify(cal));render();
+}
+const nDial=Dial($("nDial"),{values:LENS_N,value:LENS_N.find(v=>Math.abs(v-cal.N)<.05)??1.8,label:"Phone lens f-number",format:v=>v.toFixed(1),onChange:v=>calSet("N",v)});
+const offDial=Dial($("offDial"),{values:OFFS,value:OFFS.find(v=>Math.abs(v-cal.off)<.05)??0,label:"Calibration offset",format:fmtThird,onChange:v=>calSet("off",v)});
+
+function isoGrid(){
+  $("isoGrid").innerHTML=ISOS.map(v=>`<button value="${v}" class="${ISO_MAJOR.includes(v)?"":"minor"}" aria-pressed="${v===s.iso}">${v}</button>`).join("");
+}
+$("isoGrid").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  s.iso=+b.value;store("ucmeter.iso",s.iso);render();   // the form closes the sheet
+});
+$("isoBtn").onclick=()=>{isoGrid();$("isoSheet").showModal()};
+
+function toggleHold(){
+  if(s.ev==null)return;
+  s.hold=!s.hold;s.held=s.ev;
+  $("hold").setAttribute("aria-pressed",s.hold);
+  $("hold").textContent=s.hold?"Release":"Hold";
+  render();
+}
+$("hold").onclick=toggleHold;
+$("fixT").onclick=()=>{if(fixes.t)speedDial.go(SPEEDS.indexOf(fixes.t),true)};
+$("fixN").onclick=()=>{if(fixes.N)apDial.go(APS.indexOf(fixes.N),true)};
+$("pattern").onclick=()=>{
+  s.pattern=s.pattern==="spot"?"avg":"spot";
+  $("pattern").textContent=s.pattern==="spot"?"SPOT":"CENTER";
+  $("vf").classList.toggle("avg",s.pattern==="avg");
+};
+$("shoot").onclick=()=>$("file").click();
+$("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)meterPhoto(f).catch(err=>showErr("The photo could not be read: "+err.message))};
+$("startBtn").onclick=()=>IOS?$("file").click():startLive();
+$("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
+for(const id of ["sheet","isoSheet"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
+addEventListener("resize",()=>[apDial,speedDial,evDial].forEach(d=>d.sync()));
+
+if(IOS){
+  $("startLabel").textContent="Meter with photo";
+  $("startHint").textContent="Tap your subject in the camera, then shoot";
+  $("nBox").hidden=true;
+}else{
+  $("startHint").textContent="Live metering · Android Chrome";
+}
+for(const d of [-3,-2,-1,0,1,2,3]){const sp=document.createElement("span");sp.textContent=d>0?"+"+d:d<0?"−"+(-d):"0";sp.style.left=posE(d)+"%";$("ticks").appendChild(sp)}
+render();
+</script>
+</body>
+</html>
