@@ -9,6 +9,6 @@ The whole app is `public/index.html`. It is served as static assets by a Cloudfl
 
 ## Deploy
 
-A push to `main` deploys through GitHub Actions. The workflow needs the repo secret `CLOUDFLARE_API_TOKEN`.
+A push to `main` deploys through Cloudflare Workers Builds, which is connected to this repo.
 
 To deploy by hand: `npm install && npx wrangler deploy`.
