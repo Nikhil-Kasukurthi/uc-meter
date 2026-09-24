@@ -247,7 +247,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <button class="shoot" id="shoot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Meter with photo</button>
     <button class="hold" id="hold" aria-pressed="false" disabled>Hold</button>
   </div>
-  <input type="file" id="file" accept="image/jpeg,image/*" capture="environment" hidden>
+  <input type="file" id="file" accept="image/jpeg,image/*" hidden>
 
   <div class="dial-box lens"><span class="cap">Aperture ring</span><div class="dial" id="apDial"></div></div>
   <div class="dial-box lens"><span class="cap">Shutter ring</span><div class="dial" id="speedDial"></div></div>
@@ -266,7 +266,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <form method="dialog" class="sheet">
     <h2>About <button class="icon" aria-label="Close">✕</button></h2>
     <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
-    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Meter with photo</b> and photograph your subject. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
+    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Meter with photo</b> and photograph your subject. On iPhone, take the photo in the Camera app, then pick it from Photo Library. Safari removes the exposure data from photos it takes itself. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
     <p class="note"><b>How it measures.</b> On iPhone, the page reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
     <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
   </form>
@@ -413,7 +413,7 @@ async function meterPhoto(file){
   if(img.src)URL.revokeObjectURL(img.src);
   img.src=URL.createObjectURL(file);img.hidden=false;$("video").hidden=true;$("startBtn").hidden=true;
   if(!exif||!exif.t||!exif.N||!exif.iso){
-    showErr(exif?"The photo has no exposure data. Use the Scene EV dial below.":"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
+    showErr(exif?(IOS?"Safari removed the exposure data from this photo. Take the photo in the Camera app, then pick it from Photo Library.":"The photo has no exposure data. Use the Scene EV dial below."):"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
     $("srcNote").innerHTML="<b>Last reading:</b> photo without exposure data ("+(file.type||"unknown type")+").";
     ph("meter_photo",{ok:false,reason:exif?"no_exposure_data":"no_exif"});
     showFallback();return;
@@ -590,9 +590,10 @@ addEventListener("resize",()=>[apDial,speedDial,evDial].forEach(d=>d.sync()));
 
 if(IOS){
   $("startLabel").textContent="Meter with photo";
-  $("startHint").textContent="Tap your subject in the camera, then shoot";
+  $("startHint").textContent="Shoot in the Camera app, then pick the photo";
   $("nBox").hidden=true;
 }else{
+  $("file").setAttribute("capture","environment");
   $("startHint").textContent="Live metering · Android Chrome";
 }
 for(const d of [-3,-2,-1,0,1,2,3]){const sp=document.createElement("span");sp.textContent=d>0?"+"+d:d<0?"−"+(-d):"0";sp.style.left=posE(d)+"%";$("ticks").appendChild(sp)}
