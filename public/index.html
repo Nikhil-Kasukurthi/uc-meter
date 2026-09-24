@@ -226,6 +226,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <button class="start" id="startBtn"><i id="startLabel">Start meter</i><small id="startHint"></small></button>
   </div>
   <p class="err" id="err" hidden></p>
+  <div id="probeBox" hidden>
+    <button id="probeBtn">Probe camera</button> <button id="probeCopy">Copy</button>
+    <pre id="probeOut" style="font-size:.7rem;white-space:pre-wrap;overflow-wrap:anywhere;max-height:50vh;overflow:auto"></pre>
+  </div>
 
   <section class="readout" aria-live="polite">
     <div class="pair">
@@ -244,7 +248,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 
   <div class="row">
-    <button class="shoot" id="shoot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Meter with photo</button>
+    <button class="shoot" id="shoot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="shootLabel">Meter with photo</span></button>
     <button class="hold" id="hold" aria-pressed="false" disabled>Hold</button>
   </div>
   <input type="file" id="file" accept="image/jpeg,image/*" hidden>
@@ -266,8 +270,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <form method="dialog" class="sheet">
     <h2>About <button class="icon" aria-label="Close">✕</button></h2>
     <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
-    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Meter with photo</b> and photograph your subject. On iPhone, take the photo in the Camera app, then pick it from Photo Library. Safari removes the exposure data from photos it takes itself. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
-    <p class="note"><b>How it measures.</b> On iPhone, the page reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
+    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Start meter</b> and aim at your subject. On iPhone, tap <b>Meter</b> to take a reading. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
+    <p class="note"><b>How it measures.</b> On iPhone, the page takes a still photo when you tap Meter. It reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
     <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
   </form>
 </dialog>
@@ -406,22 +410,23 @@ function parseTiff(v,t){
   return out;
 }
 
-async function meterPhoto(file){
+async function meterPhoto(file,from="file"){
   $("err").hidden=true;
   const exif=readExif(await file.arrayBuffer());
   const img=$("photo");
   if(img.src)URL.revokeObjectURL(img.src);
-  img.src=URL.createObjectURL(file);img.hidden=false;$("video").hidden=true;$("startBtn").hidden=true;
+  img.src=URL.createObjectURL(file);
+  if(from==="file"){img.hidden=false;$("video").hidden=true;$("startBtn").hidden=true}
   if(!exif||!exif.t||!exif.N||!exif.iso){
-    showErr(exif?(IOS?"Safari removed the exposure data from this photo. Take the photo in the Camera app, then pick it from Photo Library.":"The photo has no exposure data. Use the Scene EV dial below."):"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
+    showErr(exif?(IOS&&from==="file"?"This photo has no exposure data. Tap Start meter, then tap Meter.":"The photo has no exposure data. Use the Scene EV dial below."):"The photo is not a JPEG with EXIF data. Use the Scene EV dial below.");
     $("srcNote").innerHTML="<b>Last reading:</b> photo without exposure data ("+(file.type||"unknown type")+").";
-    ph("meter_photo",{ok:false,reason:exif?"no_exposure_data":"no_exif"});
+    ph("meter_photo",{ok:false,from,reason:exif?"no_exposure_data":"no_exif"});
     showFallback();return;
   }
   const bmp=await createImageBitmap(file);
   const {Y,clip}=measure(bmp,bmp.width,bmp.height);bmp.close?.();
   s.ev=evFrom(exif.N,exif.t,exif.iso,Y);
-  ph("meter_photo",{ok:true,clipped:clip>=0.25,pattern:s.pattern});
+  ph("meter_photo",{ok:true,from,clipped:clip>=0.25,pattern:s.pattern});
   if(s.hold)toggleHold();
   $("hold").disabled=false;
   $("clipTag").hidden=clip<0.25;
@@ -503,6 +508,87 @@ async function startLive(){
   }
 }
 
+/* ---------- iPhone: live preview, one photo per tap ----------
+   Safari gives no exposure data for live video, but a still from
+   ImageCapture.takePhoto() keeps its EXIF. The file input strips it. */
+let snapper=null;
+async function startPreview(){
+  $("err").hidden=true;
+  if(typeof ImageCapture!=="function"||!navigator.mediaDevices?.getUserMedia){$("file").click();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+    video.srcObject=stream;video.hidden=false;$("photo").hidden=true;await video.play();
+    track=stream.getVideoTracks()[0];snapper=new ImageCapture(track);
+    track.onended=stopPreview;
+    $("startBtn").hidden=true;$("shootLabel").textContent="Meter";
+    ph("meter_preview",{ok:true});
+  }catch(e){
+    ph("meter_preview",{ok:false,reason:e.name});
+    showErr(e.name==="NotAllowedError"?"Camera access is blocked. Allow the camera for this site in Settings › Safari › Camera, then try again.":"The camera did not start: "+e.message);
+  }
+}
+function stopPreview(){
+  track?.stop();track=null;snapper=null;
+  video.hidden=true;$("startBtn").hidden=false;$("shootLabel").textContent="Meter with photo";
+}
+async function snap(){
+  $("shoot").disabled=true;
+  try{
+    const blob=await Promise.race([snapper.takePhoto(),new Promise((_,j)=>setTimeout(()=>j(new Error("timeout")),5000))]);
+    await meterPhoto(blob,"take_photo");
+  }
+  catch(e){
+    ph("meter_photo",{ok:false,from:"take_photo",reason:e.name});
+    stopPreview();
+    showErr("The camera could not take a photo. Tap Meter with photo to pick one from Photo Library.");
+  }
+  finally{$("shoot").disabled=false}
+}
+document.addEventListener("visibilitychange",()=>{if(IOS&&document.hidden&&snapper)stopPreview()});
+
+/* ---------- ?debug: dump what the browser reports about the camera ---------- */
+async function probeCamera(){
+  const out=$("probeOut"),log=(k,v)=>{out.textContent+=k+": "+JSON.stringify(v,null,1)+"\n\n"};
+  out.textContent="";
+  log("userAgent",navigator.userAgent);
+  log("supportedConstraints",navigator.mediaDevices?.getSupportedConstraints?.());
+  log("ImageCapture",typeof ImageCapture);
+  let stream;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}});
+    video.srcObject=stream;video.hidden=false;$("photo").hidden=true;await video.play();
+    const tr=stream.getVideoTracks()[0];
+    log("label",tr.label);
+    log("capabilities",tr.getCapabilities?.());
+    log("settings",tr.getSettings());
+    // Sample for 3 s: point the phone at light and dark areas to see if values move.
+    for(let i=0;i<6;i++){
+      await new Promise(r=>setTimeout(r,500));
+      const st=tr.getSettings(),{Y}=measure(video,video.videoWidth,video.videoHeight);
+      log("sample "+i,{exposureTime:st.exposureTime,iso:st.iso,exposureMode:st.exposureMode,exposureCompensation:st.exposureCompensation,Y:+Y.toFixed(3)});
+    }
+    for(const c of [{exposureMode:"manual"},{exposureMode:"continuous"},{exposureCompensation:-2}]){
+      try{await tr.applyConstraints({advanced:[c]});log("apply "+JSON.stringify(c),{ok:true,settings:tr.getSettings()})}
+      catch(e){log("apply "+JSON.stringify(c),{error:e.name+": "+e.message})}
+    }
+    // A still from ImageCapture may keep the EXIF that the file input strips.
+    if(typeof ImageCapture==="function"){
+      try{
+        const ic=new ImageCapture(tr);
+        try{log("photoCapabilities",await ic.getPhotoCapabilities())}catch(e){log("photoCapabilities",{error:e.name+": "+e.message})}
+        const blob=await Promise.race([ic.takePhoto(),new Promise((_,j)=>setTimeout(()=>j(new Error("no photo after 5 s")),5000))]);
+        log("takePhoto",{type:blob.type,size:blob.size,exif:readExif(await blob.arrayBuffer())});
+      }catch(e){log("takePhoto",{error:e.name+": "+e.message})}
+    }
+  }catch(e){log("error",e.name+": "+e.message)}
+  finally{stream?.getTracks().forEach(t=>t.stop());video.hidden=true;out.textContent+="--- done ---\n"}
+}
+if(new URLSearchParams(location.search).has("debug")){
+  $("probeBox").hidden=false;
+  $("probeBtn").onclick=async e=>{e.target.disabled=true;try{await probeCamera()}finally{e.target.disabled=false}};
+  $("probeCopy").onclick=()=>navigator.clipboard.writeText($("probeOut").textContent);
+}
+
 function showErr(m){$("err").textContent=m;$("err").hidden=false}
 function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value();render()}
 
@@ -580,17 +666,16 @@ $("pattern").onclick=()=>{
   $("pattern").textContent=s.pattern==="spot"?"SPOT":"CENTER";
   $("vf").classList.toggle("avg",s.pattern==="avg");
 };
-$("shoot").onclick=()=>$("file").click();
+$("shoot").onclick=()=>snapper?snap():$("file").click();
 $("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)meterPhoto(f).catch(err=>showErr("The photo could not be read: "+err.message))};
-$("startBtn").onclick=()=>IOS?$("file").click():startLive();
+$("startBtn").onclick=()=>IOS?startPreview():startLive();
 $("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
 $("aboutBtn").onclick=()=>{$("about").showModal();ph("about_opened")};
 for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
 addEventListener("resize",()=>[apDial,speedDial,evDial].forEach(d=>d.sync()));
 
 if(IOS){
-  $("startLabel").textContent="Meter with photo";
-  $("startHint").textContent="Shoot in the Camera app, then pick the photo";
+  $("startHint").textContent="Aim, then tap Meter";
   $("nBox").hidden=true;
 }else{
   $("file").setAttribute("capture","environment");
