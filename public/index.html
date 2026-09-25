@@ -62,10 +62,10 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 
 /* top bar */
 .bar{display:flex;align-items:center;gap:8px}
-.brand{font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;margin-right:auto}
+.brand{white-space:nowrap;font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;margin-right:auto}
 .brand span{color:var(--accent)}
-.pill{all:unset;cursor:pointer;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:6px 9px;border-radius:999px;border:1px solid var(--rule);background:var(--body)}
-.icon{all:unset;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--rule);background:var(--body)}
+.pill{all:unset;white-space:nowrap;cursor:pointer;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;padding:10px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--body)}
+.icon{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--rule);background:var(--body)}
 .icon svg{width:17px;height:17px;stroke:var(--ink);fill:none;stroke-width:1.8}
 
 /* small aiming strip */
@@ -92,8 +92,9 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 /* readout takes the free space */
 .readout{flex:1 1 auto;min-height:0;background:var(--leather);color:var(--leather-ink);border-radius:12px;padding:12px 16px;
   display:flex;flex-direction:column;justify-content:center;gap:8px}
+.readout>*{flex:none}
 .pair{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.big{font-family:var(--display);font-weight:600;font-size:clamp(2.8rem,11dvh,5rem);line-height:.9;font-variant-numeric:tabular-nums}
+.big{font-family:var(--display);font-weight:600;font-size:clamp(2.4rem,9dvh,5rem);line-height:.9;font-variant-numeric:tabular-nums}
 .big small{font-size:.48em;opacity:.6;margin-right:2px}
 .big.locked{opacity:.5}
 .sep{font-family:var(--display);font-size:2rem;opacity:.3}
@@ -109,14 +110,12 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 .needle .ticks{position:absolute;left:0;right:0;top:19px;font-family:var(--mono);font-size:.6rem;opacity:.7}
 .needle .ticks span{position:absolute;transform:translateX(-50%)}
 
-/* mode + hold */
-.row{display:flex;gap:8px}
-.seg{flex:1;display:grid;grid-template-columns:1fr 1fr;background:var(--body);border:1px solid var(--rule);border-radius:9px;padding:3px;gap:3px}
-.seg button{all:unset;text-align:center;padding:9px 4px;border-radius:6px;font-size:.84rem;font-weight:500;cursor:pointer;color:var(--ink-2)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--body)}
-.hold{all:unset;cursor:pointer;text-align:center;padding:0 16px;border-radius:9px;background:var(--accent);color:var(--body);font-weight:600;font-size:.88rem;display:grid;place-items:center}
-.hold[aria-pressed="true"]{background:var(--warn)}
-.hold:disabled{opacity:.4;cursor:default}
+/* bottom action bar: in reach of the thumb of the hand that holds the phone */
+.actions{display:flex;gap:8px;flex:none}
+.photo{all:unset;cursor:pointer;flex:none;width:58px;height:58px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--rule);background:var(--body)}
+.photo svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.8}
+.shake{font-size:.78rem;color:var(--slow);line-height:1.35;margin:0}
+.shake:empty{display:none}
 
 /* swipe dial: a scroll-snap strip, read off a fixed centre mark */
 .dial-box{position:relative;background:var(--body);border:1px solid var(--rule);border-radius:10px;flex:none}
@@ -145,23 +144,33 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .sheet h2{font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:.04em;margin:0;display:flex;justify-content:space-between;align-items:center}
 .note{font-size:.78rem;color:var(--ink-2);line-height:1.5;margin:0}
 .note b{color:var(--ink);font-weight:600}
+/* small phones (iPhone SE): tighten so the action bar stays on screen */
+@media (max-width:359px){.brand{font-size:1rem}.pill{padding:10px 8px}.bar{gap:6px}}
+@media (max-height:600px){.vf{min-height:44px}.big{font-size:2.2rem}.meta{display:none}}
+@media (max-height:700px){
+  .app{gap:7px}.readout{padding:10px 14px;gap:5px}
+  .dial .it{padding:15px 0 10px}.dial.small .it{padding:13px 0 8px}
+  .fix button{padding:8px 6px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 <style>
 .vf img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .start{flex-direction:column;gap:6px}
-.start small{font-weight:400;font-size:.72rem;opacity:.7}
-.shoot{all:unset;cursor:pointer;flex:1;text-align:center;padding:11px 12px;border-radius:9px;background:var(--ink);color:var(--body);font-weight:600;font-size:.9rem;display:flex;align-items:center;justify-content:center;gap:8px}
-.shoot svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
-.hold{padding:0 20px}
+.start small{font-weight:400;font-size:.8rem;opacity:.7}
+.shoot{all:unset;cursor:pointer;flex:1;height:58px;text-align:center;border-radius:12px;background:var(--accent);color:var(--body);font-weight:600;font-size:1.05rem;display:flex;align-items:center;justify-content:center;gap:10px}
+.shoot svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.shoot[aria-pressed="true"]{background:var(--warn)}
+.shoot:disabled{opacity:.6;cursor:default}
 .vf-tag:empty{display:none}
 .note a{color:var(--accent)}
 .icon b{font-family:var(--display);font-size:1rem;font-weight:700}
 .dial-box.lens .it.flash{color:#E0352B}
 .fix{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.fix button{all:unset;cursor:pointer;text-align:center;padding:7px 6px;border-radius:7px;border:1px solid rgba(237,235,230,.22);font-size:.78rem;color:var(--leather-ink)}
+.fix button{all:unset;cursor:pointer;text-align:center;padding:11px 6px;border-radius:7px;border:1px solid rgba(237,235,230,.22);font-size:.78rem;color:var(--leather-ink)}
 .fix button b{font-family:var(--display);font-weight:600;font-size:1.05rem;margin-left:5px}
 .fix button:disabled{opacity:.35;cursor:default}
+.fix button.shaky b{color:var(--slow)}
 .iso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .iso-grid button{all:unset;cursor:pointer;text-align:center;padding:12px 0;border-radius:8px;border:1px solid var(--rule);background:var(--body);font-family:var(--display);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
 .iso-grid button.minor{font-size:1rem;color:var(--ink-2)}
@@ -224,7 +233,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="spot"></div>
     <div class="vf-tag" id="vfTag"></div>
     <div class="tags"><span id="clipTag" hidden>CLIPPED</span><span id="holdTag" hidden>HOLD</span></div>
-    <button class="start" id="startBtn"><i id="startLabel">Start meter</i><small id="startHint"></small></button>
+    <button class="start" id="startBtn" aria-label="Start meter"><small id="startHint"></small></button>
   </div>
   <p class="err" id="err" hidden></p>
   <div id="probeBox" hidden>
@@ -245,19 +254,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     </div>
     <div class="meta"><span id="evLine">EV –</span><span id="exactLine"></span></div>
     <div class="status idle" id="status"><span class="dot"></span><span id="statusText">Take a reading to check your settings</span></div>
+    <p class="shake" id="shake"></p>
     <div class="fix"><button id="fixT" disabled>Speed</button><button id="fixN" disabled>Aperture</button><button id="fixD" disabled>ND</button></div>
   </section>
-
-  <div class="row">
-    <button class="shoot" id="shoot"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="shootLabel">Meter with photo</span></button>
-    <button class="hold" id="hold" aria-pressed="false" disabled>Hold</button>
-  </div>
-  <input type="file" id="file" accept="image/jpeg,image/*" hidden>
 
   <div class="dial-box lens"><span class="cap">Aperture ring</span><div class="dial" id="apDial"></div></div>
   <div class="dial-box lens"><span class="cap">Shutter ring</span><div class="dial" id="speedDial"></div></div>
   <div class="dial-box lens"><span class="cap">ND filter ring</span><div class="dial small" id="ndDial"></div></div>
   <div class="dial-box lens" id="evBox" hidden><span class="cap">Scene EV · Sunny 16</span><div class="dial small" id="evDial"></div></div>
+
+  <div class="actions">
+    <button class="photo" id="photoBtn" aria-label="Meter from a photo"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5.5-5 4 3.5 3-2.5 3.5 3"/></svg></button>
+    <button class="shoot" id="shoot" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="shootLabel">Start meter</span></button>
+  </div>
+  <input type="file" id="file" accept="image/jpeg,image/*" hidden>
 </div>
 
 <dialog id="isoSheet">
@@ -272,8 +282,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <form method="dialog" class="sheet">
     <h2>About <button class="icon" aria-label="Close">✕</button></h2>
     <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
-    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Start meter</b> and aim at your subject. On iPhone, tap <b>Meter</b> to take a reading. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
+    <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Start meter</b> and aim at your subject. On iPhone, tap <b>Meter</b> to take a reading. On Android, the meter reads all the time. Tap <b>Hold</b> to keep a reading. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
     <p class="note"><b>ND filter.</b> With a variable ND2–ND32 filter on the lens, set the ND filter dial to the mark on the filter ring. The meter takes those stops off the light that reaches the film. To shoot at f/1.7 in bright light, tap the ND fix.</p>
+    <p class="note"><b>Hand shake.</b> The rule for a steady hand is a shutter speed of 1/focal length: 1/42 s for the 42 mm lens. The leaf shutter has no mirror, so 1/30 is safe with care. At 1/15, brace the camera on something. At 1/8 and slower, most photos show blur. Use a tripod or set the camera down.</p>
     <p class="note"><b>How it measures.</b> On iPhone, the page takes a still photo when you tap Meter. It reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
     <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
   </form>
@@ -301,6 +312,7 @@ const LENS_N=Array.from({length:15},(_,i)=>Math.round((1.4+i/10)*10)/10);
 const OFFS=Array.from({length:19},(_,i)=>(i-9)/3);                 // −3 … +3 EV in thirds
 const MID_GREY=0.18;
 const T_MAX=1/15;
+const FOCAL=42;                              // mm; hand-shake limit is about 1/FOCAL s
 // iPhone and iPad browsers give a web page no live exposure data, so they meter from a photo.
 const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 
@@ -432,7 +444,6 @@ async function meterPhoto(file,from="file"){
   s.ev=evFrom(exif.N,exif.t,exif.iso,Y);
   ph("meter_photo",{ok:true,from,clipped:clip>=0.25,pattern:s.pattern});
   if(s.hold)toggleHold();
-  $("hold").disabled=false;
   $("clipTag").hidden=clip<0.25;
   $("vfTag").textContent=`photo ${fmtT(exif.t)} · ISO ${exif.iso} · f/${exif.N.toFixed(1)}`;
   $("srcNote").innerHTML=`<b>Last reading:</b> ${esc(exif.model||"camera")}, ${fmtT(exif.t)}, ISO ${exif.iso}, f/${exif.N.toFixed(2)}${exif.focal35?`, ${exif.focal35} mm equiv.`:""}. Metered area ${(Y*100).toFixed(1)}% grey.`;
@@ -467,7 +478,7 @@ function steer(delta){
   applyExp().catch(()=>{});
 }
 function tick(){
-  if(!track||track.readyState!=="live"){$("startBtn").hidden=false;return}
+  if(!track||track.readyState!=="live"){$("startBtn").hidden=false;syncActions();return}
   if(video.readyState>=2&&!busy&&performance.now()>=settleUntil){
     const {Y,clip}=measure(video,video.videoWidth,video.videoHeight);
     let t=null,iso=null;
@@ -485,7 +496,7 @@ function tick(){
 }
 async function startLive(){
   $("err").hidden=true;
-  if(!navigator.mediaDevices?.getUserMedia){showErr("This browser cannot open a live camera. Use Meter with photo.");return}
+  if(!navigator.mediaDevices?.getUserMedia){showErr("This browser cannot open a live camera. Tap the photo button to meter from a photo.");return}
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:640},height:{ideal:480}}});
     video.srcObject=stream;video.hidden=false;$("photo").hidden=true;await video.play();
@@ -499,11 +510,11 @@ async function startLive(){
     $("startBtn").hidden=true;
     ph("meter_live",{source:src});
     if(src==="none"){
-      track.stop();video.hidden=true;
-      showErr("This browser gives no live exposure data. Use Meter with photo.");
+      track.stop();track=null;video.hidden=true;$("startBtn").hidden=false;
+      showErr("This browser gives no live exposure data. Tap the photo button to meter from a photo.");
       return;
     }
-    $("hold").disabled=false;
+    syncActions();
     requestAnimationFrame(tick);
     try{await navigator.wakeLock?.request("screen")}catch(e){}
   }catch(e){
@@ -524,8 +535,9 @@ async function startPreview(){
     video.srcObject=stream;video.hidden=false;$("photo").hidden=true;await video.play();
     track=stream.getVideoTracks()[0];snapper=new ImageCapture(track);
     track.onended=stopPreview;
-    $("startBtn").hidden=true;$("shootLabel").textContent="Meter";
+    $("startBtn").hidden=true;syncActions();
     ph("meter_preview",{ok:true});
+    try{await navigator.wakeLock?.request("screen")}catch(e){}
   }catch(e){
     ph("meter_preview",{ok:false,reason:e.name});
     showErr(e.name==="NotAllowedError"?"Camera access is blocked. Allow the camera for this site in Settings › Safari › Camera, then try again.":"The camera did not start: "+e.message);
@@ -533,10 +545,10 @@ async function startPreview(){
 }
 function stopPreview(){
   track?.stop();track=null;snapper=null;
-  video.hidden=true;$("startBtn").hidden=false;$("shootLabel").textContent="Meter with photo";
+  video.hidden=true;$("startBtn").hidden=false;syncActions();
 }
 async function snap(){
-  $("shoot").disabled=true;
+  $("shoot").disabled=true;$("shootLabel").textContent="Metering…";
   try{
     const blob=await Promise.race([snapper.takePhoto(),new Promise((_,j)=>setTimeout(()=>j(new Error("timeout")),5000))]);
     await meterPhoto(blob,"take_photo");
@@ -544,9 +556,9 @@ async function snap(){
   catch(e){
     ph("meter_photo",{ok:false,from:"take_photo",reason:e.name});
     stopPreview();
-    showErr("The camera could not take a photo. Tap Meter with photo to pick one from Photo Library.");
+    showErr("The camera could not take a photo. Tap the photo button to pick one from Photo Library.");
   }
-  finally{$("shoot").disabled=false}
+  finally{$("shoot").disabled=false;syncActions()}
 }
 document.addEventListener("visibilitychange",()=>{if(IOS&&document.hidden&&snapper)stopPreview()});
 
@@ -593,6 +605,13 @@ if(new URLSearchParams(location.search).has("debug")){
   $("probeCopy").onclick=()=>navigator.clipboard.writeText($("probeOut").textContent);
 }
 
+// The primary button: Start meter → Meter (iPhone) or Hold/Release (Android live).
+const isLive=()=>!IOS&&track?.readyState==="live";
+function syncActions(){
+  const b=$("shoot");
+  $("shootLabel").textContent=snapper?"Meter":isLive()?(s.hold?"Release":"Hold"):"Start meter";
+  b.setAttribute("aria-pressed",isLive()&&s.hold);
+}
 function showErr(m){$("err").textContent=m;$("err").hidden=false}
 function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value();render()}
 
@@ -602,12 +621,25 @@ const posE=d=>50+clamp(d,-3.5,3.5)*43/3;
 const nearest=(list,x)=>list.reduce((a,b)=>Math.abs(log2(b/x))<Math.abs(log2(a/x))?b:a);
 let fixes={t:null,N:null,nd:null};
 
+// Hand shake: blur grows with focal length × time. k=1 is the 1/focal-length limit.
+const shakeK=t=>t*FOCAL;
+function shake(evFilm){
+  const k=shakeK(s.t),T=fmtT(s.t);
+  let m=k<=0.75?"":k<=1.5?`${T}: hold steady.`:k<=3?`${T}: shake likely. Brace the camera.`:`${T}: blur likely. Use a tripod.`;
+  if(m&&evFilm!=null){
+    // How fast the shutter can go with the lens wide open and no ND.
+    const t=nearest(SPEEDS,1.7*1.7/2**(evFilm+s.nd));
+    if(t<s.t)m+=` f/1.7${s.nd?", no ND,":""} gives ${fmtT(t)}.`;
+  }
+  $("shake").textContent=m;
+}
+
 function render(){
   const ev=s.hold?s.held:s.ev;
   $("outA").innerHTML="<small>f/</small>"+fmtN(s.N);
   $("outT").textContent=fmtT(s.t);
   $("isoBtn").textContent="ASA "+s.iso;
-  if(ev==null)return;
+  if(ev==null){shake(null);return}
   const evIso=ev+log2(s.iso/100);        // EV at the film speed
   const evFilm=evIso-s.nd;               // the ND filter takes stops off the light that reaches the film
   const d=evFilm-log2(s.N*s.N/s.t);      // + means the rings let in too much light
@@ -616,11 +648,12 @@ function render(){
   const ndx=s.nd+d;                      // right ND stops for the set rings
   const st=$("status"),msg=$("statusText");
   if(Math.abs(d)<=1/3){st.className="status";msg.textContent="Correct exposure."}
-  else{st.className="status bad";msg.textContent=`${d>0?"Over":"Under"} by ${Math.abs(d).toFixed(1)} stops. Turn a ring, or tap a fix below.`}
+  else{st.className="status bad";msg.textContent=`${d>0?"Over":"Under"} by ${Math.abs(d).toFixed(1)} stops. Tap a fix, or turn a ring.`}
   $("ptr").style.left=posE(d)+"%";
   $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}${s.nd?` · ND${2**s.nd}`:""}`;
   $("exactLine").textContent=d>=0?`+${d.toFixed(1)} EV`:`−${(-d).toFixed(1)} EV`;
   $("holdTag").hidden=!s.hold;
+  shake(evFilm);
 
   // One-tap fixes: change one ring, keep the others.
   const tOk=tx<=1.4&&tx>=1/700,nOk=nx>=1.7/1.19&&nx<=16*1.19;
@@ -629,6 +662,7 @@ function render(){
   $("fixT").innerHTML=tOk?`Speed<b>${fmtT(fixes.t)}</b>`:tx>1.4?`Speed<b>B ${tx.toFixed(0)}s</b>`:"Speed<b>too bright</b>";
   $("fixN").innerHTML=nOk?`Aperture<b>f/${fmtN(fixes.N)}</b>`:nx<1.7?"Aperture<b>too dark</b>":"Aperture<b>too bright</b>";
   $("fixT").disabled=!tOk||fixes.t===s.t;
+  $("fixT").classList.toggle("shaky",tOk&&shakeK(fixes.t)>1.5);
   $("fixN").disabled=!nOk||fixes.N===s.N;
   // Past ND32 the filter cannot do it all, so it offers ND32 and a ring fix does the rest.
   fixes.nd=clamp(Math.round(ndx),0,5);
@@ -639,7 +673,7 @@ function render(){
 /* ---------- controls ---------- */
 const apDial=Dial($("apDial"),{values:APS,value:s.N,label:"Aperture",format:v=>v,onChange:v=>{s.N=v;store("ucmeter.N",v);render()}});
 const speedDial=Dial($("speedDial"),{values:SPEEDS,value:s.t,label:"Shutter speed",
-  format:v=>v>=1?"1":Math.round(1/v),cls:v=>v===1/30?"flash":"",onChange:v=>{s.t=v;store("ucmeter.t",v);render()}});
+  format:v=>v>=1?"1":Math.round(1/v),cls:v=>v===1/30?"flash":shakeK(v)>1.5?"slow":"",onChange:v=>{s.t=v;store("ucmeter.t",v);render()}});
 const ndDial=Dial($("ndDial"),{values:NDS,value:s.nd,label:"ND filter",format:v=>v?2**v:"Off",
   onChange:v=>{s.nd=v;store("ucmeter.nd",v);render()}});
 const evDial=Dial($("evDial"),{values:EVS,value:15,label:"Scene EV",format:v=>v%1?Math.floor(v)+"½":v,
@@ -666,11 +700,9 @@ $("isoBtn").onclick=()=>{isoGrid();$("isoSheet").showModal()};
 function toggleHold(){
   if(s.ev==null)return;
   s.hold=!s.hold;s.held=s.ev;
-  $("hold").setAttribute("aria-pressed",s.hold);
-  $("hold").textContent=s.hold?"Release":"Hold";
+  syncActions();
   render();
 }
-$("hold").onclick=toggleHold;
 $("fixT").onclick=()=>{if(fixes.t)ph("fix_applied",{ring:"shutter"});if(fixes.t)speedDial.go(SPEEDS.indexOf(fixes.t),true)};
 $("fixN").onclick=()=>{if(fixes.N)ph("fix_applied",{ring:"aperture"});if(fixes.N)apDial.go(APS.indexOf(fixes.N),true)};
 $("fixD").onclick=()=>{if(fixes.nd!=null){ph("fix_applied",{ring:"nd"});ndDial.go(NDS.indexOf(fixes.nd),true)}};
@@ -679,7 +711,8 @@ $("pattern").onclick=()=>{
   $("pattern").textContent=s.pattern==="spot"?"SPOT":"CENTER";
   $("vf").classList.toggle("avg",s.pattern==="avg");
 };
-$("shoot").onclick=()=>snapper?snap():$("file").click();
+$("shoot").onclick=()=>snapper?snap():isLive()?toggleHold():IOS?startPreview():startLive();
+$("photoBtn").onclick=()=>$("file").click();
 $("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)meterPhoto(f).catch(err=>showErr("The photo could not be read: "+err.message))};
 $("startBtn").onclick=()=>IOS?startPreview():startLive();
 $("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
@@ -688,11 +721,11 @@ for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{
 addEventListener("resize",()=>[apDial,speedDial,ndDial,evDial].forEach(d=>d.sync()));
 
 if(IOS){
-  $("startHint").textContent="Aim, then tap Meter";
+  $("startHint").textContent="Tap Start meter, aim, then tap Meter";
   $("nBox").hidden=true;
 }else{
   $("file").setAttribute("capture","environment");
-  $("startHint").textContent="Live metering · Android Chrome";
+  $("startHint").textContent="Tap Start meter for live metering";
 }
 for(const d of [-3,-2,-1,0,1,2,3]){const sp=document.createElement("span");sp.textContent=d>0?"+"+d:d<0?"−"+(-d):"0";sp.style.left=posE(d)+"%";$("ticks").appendChild(sp)}
 render();
