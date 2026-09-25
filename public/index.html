@@ -69,9 +69,10 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 .icon svg{width:17px;height:17px;stroke:var(--ink);fill:none;stroke-width:1.8}
 
 /* small aiming strip */
-.vf{position:relative;flex:none;height:clamp(64px,13dvh,110px);border-radius:8px;overflow:hidden;background:var(--leather)}
+.vf{position:relative;flex:2 1 0;min-height:64px;max-height:200px;border-radius:8px;overflow:hidden;background:var(--leather)}
 .vf video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .spot{position:absolute;left:50%;top:50%;height:44%;aspect-ratio:1;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.9);border-radius:50%;pointer-events:none}
+.vf:has(.start:not([hidden])) .spot{display:none}
 .vf.avg .spot{height:70%;aspect-ratio:1.6;border-radius:4px;border-style:dashed}
 .vf-tag{position:absolute;left:6px;bottom:5px;font-family:var(--mono);font-size:.62rem;color:#fff;background:rgba(0,0,0,.55);padding:2px 5px;border-radius:3px;pointer-events:none}
 .tags{position:absolute;right:6px;top:5px;display:flex;gap:4px;pointer-events:none}
@@ -89,7 +90,7 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 .err{font-size:.8rem;color:var(--warn);margin:0}
 
 /* readout takes the free space */
-.readout{flex:1;min-height:0;background:var(--leather);color:var(--leather-ink);border-radius:12px;padding:12px 16px;
+.readout{flex:1 1 auto;min-height:0;background:var(--leather);color:var(--leather-ink);border-radius:12px;padding:12px 16px;
   display:flex;flex-direction:column;justify-content:center;gap:8px}
 .pair{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .big{font-family:var(--display);font-weight:600;font-size:clamp(2.8rem,11dvh,5rem);line-height:.9;font-variant-numeric:tabular-nums}
@@ -157,7 +158,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .note a{color:var(--accent)}
 .icon b{font-family:var(--display);font-size:1rem;font-weight:700}
 .dial-box.lens .it.flash{color:#E0352B}
-.fix{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fix{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .fix button{all:unset;cursor:pointer;text-align:center;padding:7px 6px;border-radius:7px;border:1px solid rgba(237,235,230,.22);font-size:.78rem;color:var(--leather-ink)}
 .fix button b{font-family:var(--display);font-weight:600;font-size:1.05rem;margin-left:5px}
 .fix button:disabled{opacity:.35;cursor:default}
@@ -244,7 +245,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     </div>
     <div class="meta"><span id="evLine">EV –</span><span id="exactLine"></span></div>
     <div class="status idle" id="status"><span class="dot"></span><span id="statusText">Take a reading to check your settings</span></div>
-    <div class="fix"><button id="fixT" disabled>Speed</button><button id="fixN" disabled>Aperture</button></div>
+    <div class="fix"><button id="fixT" disabled>Speed</button><button id="fixN" disabled>Aperture</button><button id="fixD" disabled>ND</button></div>
   </section>
 
   <div class="row">
@@ -255,6 +256,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   <div class="dial-box lens"><span class="cap">Aperture ring</span><div class="dial" id="apDial"></div></div>
   <div class="dial-box lens"><span class="cap">Shutter ring</span><div class="dial" id="speedDial"></div></div>
+  <div class="dial-box lens"><span class="cap">ND filter ring</span><div class="dial small" id="ndDial"></div></div>
   <div class="dial-box lens" id="evBox" hidden><span class="cap">Scene EV · Sunny 16</span><div class="dial small" id="evDial"></div></div>
 </div>
 
@@ -271,6 +273,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <h2>About <button class="icon" aria-label="Close">✕</button></h2>
     <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
     <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Start meter</b> and aim at your subject. On iPhone, tap <b>Meter</b> to take a reading. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
+    <p class="note"><b>ND filter.</b> With a variable ND2–ND32 filter on the lens, set the ND filter dial to the mark on the filter ring. The meter takes those stops off the light that reaches the film. To shoot at f/1.7 in bright light, tap the ND fix.</p>
     <p class="note"><b>How it measures.</b> On iPhone, the page takes a still photo when you tap Meter. It reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
     <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
   </form>
@@ -291,6 +294,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 const SPEEDS=[1,1/2,1/4,1/8,1/15,1/30,1/60,1/125,1/250,1/500];
 const APS=[1.7,2.8,4,5.6,8,11,16];            // marks on the 35 UC aperture ring
 const ISO_MAJOR=[25,50,100,200,400,800];     // numbered on the ASA dial; the rest are dots
+const NDS=[0,1,2,3,4,5];                     // stops; ND2–ND32 on a variable filter ring
 const ISOS=[25,32,40,50,64,80,100,125,160,200,250,320,400,500,640,800];
 const EVS=Array.from({length:33},(_,i)=>1+i/2);                    // EV 1–17 in half stops
 const LENS_N=Array.from({length:15},(_,i)=>Math.round((1.4+i/10)*10)/10);
@@ -309,10 +313,10 @@ const fmtT=t=>t>=1?(Math.round(t*10)/10)+'"':"1/"+Math.round(1/t);
 const fmtN=n=>n<10?n.toFixed(1).replace(/\.0$/,""):Math.round(n)+"";
 const fmtThird=v=>{const n=Math.round(v*3),w=Math.trunc(Math.abs(n)/3),f=["","⅓","⅔"][Math.abs(n)%3];return n===0?"0":(n<0?"−":"+")+(w||"")+f};
 
-const s={N:5.6,t:1/125,iso:400,ev:null,hold:false,held:null,pattern:"spot"};
+const s={N:5.6,t:1/125,iso:400,nd:0,ev:null,hold:false,held:null,pattern:"spot"};
 const cal={N:1.8,off:0};
 try{Object.assign(cal,JSON.parse(localStorage.getItem("ucmeter.cal")||"{}"))}catch(e){}
-try{const g=k=>+localStorage.getItem(k);if(ISOS.includes(g("ucmeter.iso")))s.iso=g("ucmeter.iso");if(APS.includes(g("ucmeter.N")))s.N=g("ucmeter.N");const t=SPEEDS.find(v=>Math.abs(v-g("ucmeter.t"))<1e-9);if(t)s.t=t}catch(e){}
+try{const g=k=>+localStorage.getItem(k);if(ISOS.includes(g("ucmeter.iso")))s.iso=g("ucmeter.iso");if(APS.includes(g("ucmeter.N")))s.N=g("ucmeter.N");if(NDS.includes(g("ucmeter.nd")))s.nd=g("ucmeter.nd");const t=SPEEDS.find(v=>Math.abs(v-g("ucmeter.t"))<1e-9);if(t)s.t=t}catch(e){}
 const store=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
 /* ---------- swipe dial ---------- */
@@ -596,7 +600,7 @@ function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value(
 // Needle: exposure error in stops, −3 at 7%, 0 at 50%, +3 at 93%.
 const posE=d=>50+clamp(d,-3.5,3.5)*43/3;
 const nearest=(list,x)=>list.reduce((a,b)=>Math.abs(log2(b/x))<Math.abs(log2(a/x))?b:a);
-let fixes={t:null,N:null};
+let fixes={t:null,N:null,nd:null};
 
 function render(){
   const ev=s.hold?s.held:s.ev;
@@ -605,18 +609,20 @@ function render(){
   $("isoBtn").textContent="ASA "+s.iso;
   if(ev==null)return;
   const evIso=ev+log2(s.iso/100);        // EV at the film speed
-  const d=evIso-log2(s.N*s.N/s.t);       // + means the rings let in too much light
-  const tx=s.N*s.N/2**evIso;             // right speed for the set aperture
-  const nx=Math.sqrt(s.t*2**evIso);      // right aperture for the set speed
+  const evFilm=evIso-s.nd;               // the ND filter takes stops off the light that reaches the film
+  const d=evFilm-log2(s.N*s.N/s.t);      // + means the rings let in too much light
+  const tx=s.N*s.N/2**evFilm;            // right speed for the set aperture
+  const nx=Math.sqrt(s.t*2**evFilm);     // right aperture for the set speed
+  const ndx=s.nd+d;                      // right ND stops for the set rings
   const st=$("status"),msg=$("statusText");
   if(Math.abs(d)<=1/3){st.className="status";msg.textContent="Correct exposure."}
   else{st.className="status bad";msg.textContent=`${d>0?"Over":"Under"} by ${Math.abs(d).toFixed(1)} stops. Turn a ring, or tap a fix below.`}
   $("ptr").style.left=posE(d)+"%";
-  $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}`;
+  $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}${s.nd?` · ND${2**s.nd}`:""}`;
   $("exactLine").textContent=d>=0?`+${d.toFixed(1)} EV`:`−${(-d).toFixed(1)} EV`;
   $("holdTag").hidden=!s.hold;
 
-  // One-tap fixes: change one ring, keep the other.
+  // One-tap fixes: change one ring, keep the others.
   const tOk=tx<=1.4&&tx>=1/700,nOk=nx>=1.7/1.19&&nx<=16*1.19;
   fixes.t=tOk?nearest(SPEEDS,tx):null;
   fixes.N=nOk?nearest(APS,nx):null;
@@ -624,12 +630,18 @@ function render(){
   $("fixN").innerHTML=nOk?`Aperture<b>f/${fmtN(fixes.N)}</b>`:nx<1.7?"Aperture<b>too dark</b>":"Aperture<b>too bright</b>";
   $("fixT").disabled=!tOk||fixes.t===s.t;
   $("fixN").disabled=!nOk||fixes.N===s.N;
+  // Past ND32 the filter cannot do it all, so it offers ND32 and a ring fix does the rest.
+  fixes.nd=clamp(Math.round(ndx),0,5);
+  $("fixD").innerHTML=`ND<b>${fixes.nd?2**fixes.nd:"off"}</b>`;
+  $("fixD").disabled=fixes.nd===s.nd;
 }
 
 /* ---------- controls ---------- */
 const apDial=Dial($("apDial"),{values:APS,value:s.N,label:"Aperture",format:v=>v,onChange:v=>{s.N=v;store("ucmeter.N",v);render()}});
 const speedDial=Dial($("speedDial"),{values:SPEEDS,value:s.t,label:"Shutter speed",
   format:v=>v>=1?"1":Math.round(1/v),cls:v=>v===1/30?"flash":"",onChange:v=>{s.t=v;store("ucmeter.t",v);render()}});
+const ndDial=Dial($("ndDial"),{values:NDS,value:s.nd,label:"ND filter",format:v=>v?2**v:"Off",
+  onChange:v=>{s.nd=v;store("ucmeter.nd",v);render()}});
 const evDial=Dial($("evDial"),{values:EVS,value:15,label:"Scene EV",format:v=>v%1?Math.floor(v)+"½":v,
   onChange:v=>{if(!$("evBox").hidden){s.ev=v;render()}}});
 
@@ -661,6 +673,7 @@ function toggleHold(){
 $("hold").onclick=toggleHold;
 $("fixT").onclick=()=>{if(fixes.t)ph("fix_applied",{ring:"shutter"});if(fixes.t)speedDial.go(SPEEDS.indexOf(fixes.t),true)};
 $("fixN").onclick=()=>{if(fixes.N)ph("fix_applied",{ring:"aperture"});if(fixes.N)apDial.go(APS.indexOf(fixes.N),true)};
+$("fixD").onclick=()=>{if(fixes.nd!=null){ph("fix_applied",{ring:"nd"});ndDial.go(NDS.indexOf(fixes.nd),true)}};
 $("pattern").onclick=()=>{
   s.pattern=s.pattern==="spot"?"avg":"spot";
   $("pattern").textContent=s.pattern==="spot"?"SPOT":"CENTER";
@@ -672,7 +685,7 @@ $("startBtn").onclick=()=>IOS?startPreview():startLive();
 $("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
 $("aboutBtn").onclick=()=>{$("about").showModal();ph("about_opened")};
 for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
-addEventListener("resize",()=>[apDial,speedDial,evDial].forEach(d=>d.sync()));
+addEventListener("resize",()=>[apDial,speedDial,ndDial,evDial].forEach(d=>d.sync()));
 
 if(IOS){
   $("startHint").textContent="Aim, then tap Meter";
