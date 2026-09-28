@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#141518"/>
+  <!-- meter scale: red ends, green centre, like the needle track in the app -->
+  <g fill="none" stroke-width="30" stroke-linecap="butt">
+    <path d="M116 316 A160 160 0 0 1 150 211" stroke="#E0352B"/>
+    <path d="M150 211 A160 160 0 0 1 226 159" stroke="#55575E"/>
+    <path d="M226 159 A160 160 0 0 1 286 159" stroke="#2F9D5F"/>
+    <path d="M286 159 A160 160 0 0 1 362 211" stroke="#55575E"/>
+    <path d="M362 211 A160 160 0 0 1 396 316" stroke="#E0352B"/>
+  </g>
+  <line x1="256" y1="330" x2="282" y2="178" stroke="#EDEBE6" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="330" r="22" fill="#EDEBE6"/>
+  <text x="256" y="430" text-anchor="middle" font-family="Arial Narrow,Arial,sans-serif" font-weight="700" font-size="64" letter-spacing="6" fill="#7FA3F2">UC</text>
+</svg>

@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#141518">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="UC Meter">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>UC Pocket Meter · Light meter for the Olympus 35 UC</title>
 <meta name="description" content="A free phone light meter for the Olympus 35 UC rangefinder. Meter a scene with your phone camera, match the aperture and shutter rings, and see how many stops you are over or under.">
 <meta name="robots" content="index,follow">
@@ -31,7 +35,7 @@
   "isPartOf": { "@type": "WebSite", "name": "Blue Notebook", "url": "https://bluenotebook.io/" }
 }
 </script>
-<link rel="icon" href="data:,">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
@@ -729,6 +733,7 @@ if(IOS){
 }
 for(const d of [-3,-2,-1,0,1,2,3]){const sp=document.createElement("span");sp.textContent=d>0?"+"+d:d<0?"−"+(-d):"0";sp.style.left=posE(d)+"%";$("ticks").appendChild(sp)}
 render();
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
