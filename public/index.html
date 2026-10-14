@@ -120,6 +120,8 @@ button:focus-visible,.dial:focus-visible{outline:2px solid var(--accent);outline
 .photo svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.8}
 .shake{font-size:.78rem;color:var(--slow);line-height:1.35;margin:0}
 .shake:empty{display:none}
+.shake span{display:block}
+.shake span+span{margin-top:3px}
 
 /* swipe dial: a scroll-snap strip, read off a fixed centre mark */
 .dial-box{position:relative;background:var(--body);border:1px solid var(--rule);border-radius:10px;flex:none}
@@ -178,6 +180,14 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .iso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .iso-grid button{all:unset;cursor:pointer;text-align:center;padding:12px 0;border-radius:8px;border:1px solid var(--rule);background:var(--body);font-family:var(--display);font-weight:600;font-size:1.25rem;font-variant-numeric:tabular-nums}
 .iso-grid button.minor{font-size:1rem;color:var(--ink-2)}
+.film-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.film-list button,.filt button{all:unset;cursor:pointer;padding:10px 12px;border-radius:8px;border:1px solid var(--rule);background:var(--body);font-weight:600;font-size:.9rem}
+.film-list button small{display:block;font-weight:400;font-size:.72rem;color:var(--ink-2);margin-top:2px}
+.filt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.filt button{text-align:center;padding:10px 0;font-size:.8rem}
+.film-list button[aria-pressed="true"],.filt button[aria-pressed="true"]{background:var(--ink);color:var(--body);border-color:var(--ink)}
+.film-list button[aria-pressed="true"] small{color:var(--body);opacity:.75}
+.sheet h3{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin:4px 0 -4px}
 .iso-grid button[aria-pressed="true"]{background:var(--ink);color:var(--body);border-color:var(--ink)}
 </style>
 <script type="text/javascript" id="posthog-js">
@@ -252,7 +262,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="big" id="outT">1/125</div>
     </div>
     <div class="needle" aria-hidden="true">
-      <div class="track"></div>
+      <div class="track" id="track"></div>
       <div class="ptr" id="ptr" style="left:50%"></div>
       <div class="ticks" id="ticks"></div>
     </div>
@@ -278,7 +288,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <form method="dialog" class="sheet">
     <h2>Film speed (ASA) <button class="icon" aria-label="Close">✕</button></h2>
     <div class="iso-grid" id="isoGrid"></div>
-    <p class="note">Set the same value on the ASA dial on top of the camera.</p>
+    <p class="note">Set the same value on the ASA dial on top of the camera. Pick the film in Settings. To push or pull, set a different ASA here.</p>
   </form>
 </dialog>
 
@@ -288,6 +298,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <p class="note"><b>UC Pocket Meter</b> is a phone light meter for the Olympus 35 UC, a rangefinder with a 42 mm f/1.7 Zuiko lens. The camera's own meter needs a mercury cell that is no longer made. This page does the metering instead.</p>
     <p class="note"><b>How to use it.</b> Set ASA to your film. Turn the aperture and shutter dials to match the rings on the lens. Tap <b>Start meter</b> and aim at your subject. On iPhone, tap <b>Meter</b> to take a reading. On Android, the meter reads all the time. Tap <b>Hold</b> to keep a reading. The needle shows how many stops you are over or under. Tap a fix to correct one ring.</p>
     <p class="note"><b>ND filter.</b> With a variable ND2–ND32 filter on the lens, set the ND filter dial to the mark on the filter ring. The meter takes those stops off the light that reaches the film. To shoot at f/1.7 in bright light, tap the ND fix.</p>
+    <p class="note"><b>Film.</b> Pick your film in Settings. Colour negative film handles 2–3 stops of overexposure well and 1 stop of underexposure badly. The needle accepts up to +2 stops and marks underexposure in red. The fixes aim ⅓ stop over. Kodak Gold and Portra are daylight films: under warm bulbs, give +1 stop.</p>
+    <p class="note"><b>Black and white.</b> Meter the shadows that must keep detail. A yellow, orange or red filter takes 1, 2 or 3 stops: set it in Settings. If you rate Tri-X faster than 400, use that ASA for the whole roll and tell the lab to push. At 1 s and slower, Tri-X needs extra time.</p>
+    <p class="note"><b>Backlight.</b> A bright window or sky behind your subject makes the meter read too high, and the subject comes out dark. Use SPOT on the face, or give 1–2 stops more.</p>
     <p class="note"><b>Hand shake.</b> The rule for a steady hand is a shutter speed of 1/focal length: 1/42 s for the 42 mm lens. The leaf shutter has no mirror, so 1/30 is safe with care. At 1/15, brace the camera on something. At 1/8 and slower, most photos show blur. Use a tripod or set the camera down.</p>
     <p class="note"><b>How it measures.</b> On iPhone, the page takes a still photo when you tap Meter. It reads the shutter time, ISO and f-number from the photo, and the brightness of the centre spot. On Android Chrome, it meters live from the camera. Photos stay on your phone. The page never uploads them.</p>
     <p class="note">Made by Nikhil Kasukurthi · <a href="https://bluenotebook.io/">bluenotebook.io</a> · <a href="https://github.com/Nikhil-Kasukurthi/uc-meter">source code</a>. The page counts anonymous usage with PostHog.</p>
@@ -296,7 +309,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 <dialog id="sheet">
   <form method="dialog" class="sheet">
-    <h2>Calibration <button class="icon" aria-label="Close">✕</button></h2>
+    <h2>Settings <button class="icon" aria-label="Close">✕</button></h2>
+    <h3>Film</h3>
+    <div class="film-list" id="filmList"></div>
+    <p class="note" id="filmNote"></p>
+    <div id="filtBox" hidden>
+      <h3>Colour filter</h3>
+      <div class="filt" id="filtList" style="margin-top:12px"></div>
+    </div>
+    <h3>Calibration</h3>
     <div class="dial-box lens"><span class="cap">Offset (EV)</span><div class="dial small" id="offDial"></div></div>
     <p class="note">Calibrate once. In full sun, meter a grey card or the clear north sky. It should read about <b>EV 15</b>. If it does not, swipe the offset until it does. The phone saves the value.</p>
     <div class="dial-box lens" id="nBox"><span class="cap">Phone lens f-number · live mode</span><div class="dial small" id="nDial"></div></div>
@@ -315,6 +336,21 @@ const EVS=Array.from({length:33},(_,i)=>1+i/2);                    // EV 1–17 
 const LENS_N=Array.from({length:15},(_,i)=>Math.round((1.4+i/10)*10)/10);
 const OFFS=Array.from({length:19},(_,i)=>(i-9)/3);                 // −3 … +3 EV in thirds
 const MID_GREY=0.18;
+// Film profiles. ok: stops of error that still give a good negative. warn: past this the needle is red.
+// aim: where the one-tap fixes try to land. Negative film is safer over than under.
+const FILMS={
+  portra400:{name:"Kodak Portra 400",short:"Portra",iso:400,kind:"neg",ok:[-1/3,2],warn:[-1,3],aim:1/3,daylight:true,
+    note:"Colour negative. Handles +2 stops well and −1 stop badly. The fixes aim ⅓ stop over."},
+  gold200:{name:"Kodak Gold 200",short:"Gold",iso:200,kind:"neg",ok:[-1/3,2],warn:[-1,3],aim:1/3,daylight:true,
+    note:"Colour negative. Handles +2 stops well and −1 stop badly. Under warm bulbs it acts like ASA 100."},
+  trix400:{name:"Kodak Tri-X 400",short:"Tri-X",iso:400,kind:"bw",ok:[-1/3,1.5],warn:[-1,2.5],aim:1/3,
+    // Kodak: +1 stop at 1 s, +2 at 10 s, +3 at 100 s. Interpolated in log time.
+    recip:t=>t*2**Math.max(0,Math.log10(t)+1),
+    note:"Black and white. Meter the shadows that must keep detail. Set a colour filter below if you use one."},
+  other:{name:"Other film",short:"ASA",iso:null,kind:"any",ok:[-1/3,1/3],warn:[-2,2],aim:0,
+    note:"Any film. The meter aims at the reading exactly."}
+};
+const FILTERS=[{id:"none",name:"None",stops:0},{id:"yellow",name:"Yellow",stops:1},{id:"orange",name:"Orange",stops:2},{id:"red",name:"Red",stops:3}];
 const T_MAX=1/15;
 const FOCAL=42;                              // mm; hand-shake limit is about 1/FOCAL s
 // iPhone and iPad browsers give a web page no live exposure data, so they meter from a photo.
@@ -329,10 +365,17 @@ const fmtT=t=>t>=1?(Math.round(t*10)/10)+'"':"1/"+Math.round(1/t);
 const fmtN=n=>n<10?n.toFixed(1).replace(/\.0$/,""):Math.round(n)+"";
 const fmtThird=v=>{const n=Math.round(v*3),w=Math.trunc(Math.abs(n)/3),f=["","⅓","⅔"][Math.abs(n)%3];return n===0?"0":(n<0?"−":"+")+(w||"")+f};
 
-const s={N:5.6,t:1/125,iso:400,nd:0,ev:null,hold:false,held:null,pattern:"spot"};
+const s={N:5.6,t:1/125,iso:400,nd:0,ev:null,hold:false,held:null,pattern:"spot",film:null,filter:"none",scene:null,heldScene:null};
 const cal={N:1.8,off:0};
 try{Object.assign(cal,JSON.parse(localStorage.getItem("ucmeter.cal")||"{}"))}catch(e){}
-try{const g=k=>+localStorage.getItem(k);if(ISOS.includes(g("ucmeter.iso")))s.iso=g("ucmeter.iso");if(APS.includes(g("ucmeter.N")))s.N=g("ucmeter.N");if(NDS.includes(g("ucmeter.nd")))s.nd=g("ucmeter.nd");const t=SPEEDS.find(v=>Math.abs(v-g("ucmeter.t"))<1e-9);if(t)s.t=t}catch(e){}
+try{const g=k=>+localStorage.getItem(k);if(ISOS.includes(g("ucmeter.iso")))s.iso=g("ucmeter.iso");if(APS.includes(g("ucmeter.N")))s.N=g("ucmeter.N");if(NDS.includes(g("ucmeter.nd")))s.nd=g("ucmeter.nd");const t=SPEEDS.find(v=>Math.abs(v-g("ucmeter.t"))<1e-9);if(t)s.t=t;
+  const f=localStorage.getItem("ucmeter.film");if(FILMS[f])s.film=f;
+  const fl=localStorage.getItem("ucmeter.filter");if(FILTERS.some(x=>x.id===fl))s.filter=fl}catch(e){}
+// First visit: Portra 400. Earlier visits stored only ASA, so pick the film that matches it.
+if(!s.film){let st=null;try{st=localStorage.getItem("ucmeter.iso")}catch(e){}
+  s.film=st==null?"portra400":(Object.keys(FILMS).find(k=>FILMS[k].iso===s.iso)||"other")}
+const film=()=>FILMS[s.film];
+const filtStops=()=>film().kind==="bw"?FILTERS.find(x=>x.id===s.filter).stops:0;
 const store=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
 /* ---------- swipe dial ---------- */
@@ -375,17 +418,21 @@ function measure(src,sw,sh){
   ctx.drawImage(src,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,w,h);
   const d=ctx.getImageData(0,0,w,h).data;
   const cx=w/2,cy=h/2,r=h*0.22;
-  let sum=0,wsum=0,clip=0;
+  let sum=0,wsum=0,clip=0,ins=0,nIn=0,out=0,nOut=0,rs=0,bs=0;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    const dx=x+.5-cx,dy=y+.5-cy;
+    const dx=x+.5-cx,dy=y+.5-cy,inSpot=Math.hypot(dx,dy)<=r;
+    const i=(y*w+x)*4,R=d[i],G=d[i+1],B=d[i+2],lr=lin(R),lb=lin(B),L=.2126*lr+.7152*lin(G)+.0722*lb;
+    rs+=lr;bs+=lb;
+    if(inSpot){ins+=L;nIn++}else{out+=L;nOut++}
     let wt;
-    if(s.pattern==="spot"){if(Math.hypot(dx,dy)>r)continue;wt=1}
+    if(s.pattern==="spot"){if(!inSpot)continue;wt=1}
     else wt=Math.abs(dx)<w*.25&&Math.abs(dy)<h*.3?3:1;
-    const i=(y*w+x)*4,R=d[i],G=d[i+1],B=d[i+2];
-    sum+=wt*(.2126*lin(R)+.7152*lin(G)+.0722*lin(B));wsum+=wt;
+    sum+=wt*L;wsum+=wt;
     if(R>250||G>250||B>250)clip+=wt;
   }
-  return {Y:clamp(sum/wsum,1e-4,1),clip:clip/wsum};
+  // bg: stops the surround is brighter than the centre spot (backlight). warm: red/blue ratio of the frame.
+  const bg=log2(Math.max(out/nOut,1e-4)/Math.max(ins/nIn,1e-4));
+  return {Y:clamp(sum/wsum,1e-4,1),clip:clip/wsum,bg,warm:rs/Math.max(bs,1e-4)};
 }
 // EV at ISO 100 from the settings a frame was taken with, plus how far the metered area is from mid grey.
 const evFrom=(N,t,iso,Y)=>log2(N*N/t)-log2(iso/100)-log2(MID_GREY/Y)+cal.off;
@@ -444,8 +491,8 @@ async function meterPhoto(file,from="file"){
     showFallback();return;
   }
   const bmp=await createImageBitmap(file);
-  const {Y,clip}=measure(bmp,bmp.width,bmp.height);bmp.close?.();
-  s.ev=evFrom(exif.N,exif.t,exif.iso,Y);
+  const {Y,clip,bg,warm}=measure(bmp,bmp.width,bmp.height);bmp.close?.();
+  s.ev=evFrom(exif.N,exif.t,exif.iso,Y);s.scene={bg,warm};
   ph("meter_photo",{ok:true,from,clipped:clip>=0.25,pattern:s.pattern});
   if(s.hold)toggleHold();
   $("clipTag").hidden=clip<0.25;
@@ -484,13 +531,14 @@ function steer(delta){
 function tick(){
   if(!track||track.readyState!=="live"){$("startBtn").hidden=false;syncActions();return}
   if(video.readyState>=2&&!busy&&performance.now()>=settleUntil){
-    const {Y,clip}=measure(video,video.videoWidth,video.videoHeight);
+    const {Y,clip,bg,warm}=measure(video,video.videoWidth,video.videoHeight);
     let t=null,iso=null;
     if(src==="manual"){t=exp.t;iso=exp.iso;steer(log2(MID_GREY/Y))}
     else{const st=track.getSettings();if(st.exposureTime&&st.iso){t=st.exposureTime/1e4;iso=st.iso}}
     if(t&&iso){
       const ev=evFrom(cal.N,t,iso,Y);
       s.ev=s.ev==null?ev:s.ev+0.3*(ev-s.ev);
+      s.scene=s.scene?{bg:s.scene.bg+0.3*(bg-s.scene.bg),warm:s.scene.warm+0.3*(warm-s.scene.warm)}:{bg,warm};
       $("vfTag").textContent=`live ${fmtT(t)} · ISO ${Math.round(iso)}${src==="auto"?" · auto":""}`;
       $("clipTag").hidden=clip<0.25;
       render();
@@ -617,53 +665,90 @@ function syncActions(){
   b.setAttribute("aria-pressed",isLive()&&s.hold);
 }
 function showErr(m){$("err").textContent=m;$("err").hidden=false}
-function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value();render()}
+function showFallback(){$("evBox").hidden=false;evDial.sync();s.ev=evDial.value();s.scene=null;render()}
 
 /* ---------- exposure maths + display ---------- */
 // Needle: exposure error in stops, −3 at 7%, 0 at 50%, +3 at 93%.
 const posE=d=>50+clamp(d,-3.5,3.5)*43/3;
+// Needle track: green where the film is fine, red past the warn limits, grey between.
+const track_=f=>{const p=v=>posE(v).toFixed(1)+"%",g="rgba(255,255,255,.18)";
+  return `linear-gradient(90deg,var(--warn) 0 ${p(f.warn[0])},${g} ${p(f.warn[0])} ${p(f.ok[0])},var(--ok) ${p(f.ok[0])} ${p(f.ok[1])},${g} ${p(f.ok[1])} ${p(f.warn[1])},var(--warn) ${p(f.warn[1])})`};
 const nearest=(list,x)=>list.reduce((a,b)=>Math.abs(log2(b/x))<Math.abs(log2(a/x))?b:a);
 let fixes={t:null,N:null,nd:null};
 
 // Hand shake: blur grows with focal length × time. k=1 is the 1/focal-length limit.
 const shakeK=t=>t*FOCAL;
-function shake(evFilm){
+const fmtSec=t=>t<1?fmtT(t):Math.round(t)+" s";
+// Warnings under the readout, most important first. The panel shows the first two.
+function tips(evFilm,ev100,scene,first){
+  const f=film(),out=first?[first]:[];
+  if(evFilm!=null){
+    // Backlight: the surround is much brighter than the centre spot.
+    if(scene&&scene.bg>=2){
+      const n=Math.round(scene.bg);
+      out.push(s.pattern==="spot"
+        ?`Backlit: the background is ${n} stops brighter. Keep the spot on your subject.`
+        :`Backlit: the background is ${n} stops brighter. Your subject will be dark. Use SPOT on the face, or give 1–2 stops more.`);
+    }
+    // Low light: even wide open with no ND, the shutter must be slower than 1/30.
+    const tWide=1.7*1.7/2**(evFilm+s.nd-f.aim);
+    if(tWide>1/30*1.2)out.push(`Low light for ASA ${s.iso}: f/1.7 needs ${tWide>1.4?"B "+fmtSec(tWide):fmtT(nearest(SPEEDS,tWide))}. ${f.kind==="any"?"":"Expect thin, grainy shadows. "}Use faster film, or brace the camera.`);
+    // Daylight colour film under bulbs: the blue layer gets too little light.
+    if(f.daylight&&ev100<=8)out.push(scene&&scene.warm>=1.3
+      ?`Warm bulb light. ${f.short} acts about 1 stop slower here: give +1 stop.`
+      :`Indoor light level. If the light is from warm bulbs, give +1 stop.`);
+  }
   const k=shakeK(s.t),T=fmtT(s.t);
   let m=k<=0.75?"":k<=1.5?`${T}: hold steady.`:k<=3?`${T}: shake likely. Brace the camera.`:`${T}: blur likely. Use a tripod.`;
   if(m&&evFilm!=null){
     // How fast the shutter can go with the lens wide open and no ND.
-    const t=nearest(SPEEDS,1.7*1.7/2**(evFilm+s.nd));
+    const t=nearest(SPEEDS,1.7*1.7/2**(evFilm+s.nd-f.aim));
     if(t<s.t)m+=` f/1.7${s.nd?", no ND,":""} gives ${fmtT(t)}.`;
   }
-  $("shake").textContent=m;
+  if(m)out.push(m);
+  const r=rating();if(r)out.push(r);
+  $("shake").innerHTML=out.slice(0,2).map(x=>`<span>${esc(x)}</span>`).join("");
+}
+// Rated away from box speed: a reminder for the lab.
+function rating(){
+  const f=film();if(!f.iso||s.iso===f.iso)return "";
+  const st=log2(s.iso/f.iso);
+  return st>0?`${f.short} at ASA ${s.iso}: ask the lab to push ${fmtThird(st)}. Use this ASA for the whole roll.`
+    :`${f.short} at ASA ${s.iso}: ${fmtThird(-st).slice(1)} stop over. Develop normally.`;
 }
 
 function render(){
   const ev=s.hold?s.held:s.ev;
   $("outA").innerHTML="<small>f/</small>"+fmtN(s.N);
   $("outT").textContent=fmtT(s.t);
-  $("isoBtn").textContent="ASA "+s.iso;
-  if(ev==null){shake(null);return}
+  const f=film(),fs=filtStops();
+  $("isoBtn").textContent=`${f.short} ${s.iso}`;
+  $("track").style.background=track_(f);
+  if(ev==null){tips(null);return}
   const evIso=ev+log2(s.iso/100);        // EV at the film speed
-  const evFilm=evIso-s.nd;               // the ND filter takes stops off the light that reaches the film
-  const d=evFilm-log2(s.N*s.N/s.t);      // + means the rings let in too much light
-  const tx=s.N*s.N/2**evFilm;            // right speed for the set aperture
-  const nx=Math.sqrt(s.t*2**evFilm);     // right aperture for the set speed
-  const ndx=s.nd+d;                      // right ND stops for the set rings
-  const st=$("status"),msg=$("statusText");
-  if(Math.abs(d)<=1/3){st.className="status";msg.textContent="Correct exposure."}
-  else{st.className="status bad";msg.textContent=`${d>0?"Over":"Under"} by ${Math.abs(d).toFixed(1)} stops. Tap a fix, or turn a ring.`}
+  const evFilm=evIso-s.nd-fs;            // ND and colour filters take stops off the light that reaches the film
+  const rl=f.recip?log2(f.recip(s.t)/s.t):0;  // stops lost to reciprocity at the set speed
+  const d=evFilm-log2(s.N*s.N/s.t)-rl;   // + means the rings let in too much light
+  const evAim=evFilm-f.aim;              // the fixes land f.aim stops over
+  let tx=s.N*s.N/2**evAim;               // right speed for the set aperture
+  const tm=tx;if(f.recip)tx=f.recip(tx); // long exposures need extra time (reciprocity)
+  const nx=Math.sqrt(s.t*2**evAim);      // right aperture for the set speed
+  const ndx=s.nd+d+rl-f.aim;                // right ND stops for the set rings
+  const st=$("status"),msg=$("statusText"),a=Math.abs(d).toFixed(1);
+  if(d>=f.ok[0]&&d<=f.ok[1]){st.className="status";msg.textContent=d>1/3?`Over by ${a} stops. Fine for this film.`:"Correct exposure."}
+  else if(d<0){st.className="status bad";msg.textContent=`Under by ${a} stops.${f.kind==="any"?"":" The shadows will be thin."} Tap a fix, or turn a ring.`}
+  else{st.className="status bad";msg.textContent=`Over by ${a} stops. Tap a fix, or turn a ring.`}
   $("ptr").style.left=posE(d)+"%";
-  $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}${s.nd?` · ND${2**s.nd}`:""}`;
+  $("evLine").textContent=`EV ${evIso.toFixed(1)} @ ASA ${s.iso}${s.nd?` · ND${2**s.nd}`:""}${fs?` · ${s.filter} −${fs}`:""}`;
   $("exactLine").textContent=d>=0?`+${d.toFixed(1)} EV`:`−${(-d).toFixed(1)} EV`;
   $("holdTag").hidden=!s.hold;
-  shake(evFilm);
+  tips(evFilm,ev,s.hold?s.heldScene:s.scene,f.recip&&tm>=0.5&&tm<=1.4?`Reciprocity: ${f.short} needs ${fmtSec(tx)} here, not ${fmtSec(tm)}. Use B.`:"");
 
   // One-tap fixes: change one ring, keep the others.
   const tOk=tx<=1.4&&tx>=1/700,nOk=nx>=1.7/1.19&&nx<=16*1.19;
   fixes.t=tOk?nearest(SPEEDS,tx):null;
   fixes.N=nOk?nearest(APS,nx):null;
-  $("fixT").innerHTML=tOk?`Speed<b>${fmtT(fixes.t)}</b>`:tx>1.4?`Speed<b>B ${tx.toFixed(0)}s</b>`:"Speed<b>too bright</b>";
+  $("fixT").innerHTML=tOk?`Speed<b>${fmtT(fixes.t)}</b>`:tx>1.4?`Speed<b>B ${fmtSec(tx)}</b>`:"Speed<b>too bright</b>";
   $("fixN").innerHTML=nOk?`Aperture<b>f/${fmtN(fixes.N)}</b>`:nx<1.7?"Aperture<b>too dark</b>":"Aperture<b>too bright</b>";
   $("fixT").disabled=!tOk||fixes.t===s.t;
   $("fixT").classList.toggle("shaky",tOk&&shakeK(fixes.t)>1.5);
@@ -701,9 +786,28 @@ $("isoGrid").addEventListener("click",e=>{
 });
 $("isoBtn").onclick=()=>{isoGrid();$("isoSheet").showModal()};
 
+function filmUI(){
+  const f=film();
+  $("filmList").innerHTML=Object.entries(FILMS).map(([k,v])=>`<button type="button" value="${k}" aria-pressed="${k===s.film}">${esc(v.name)}<small>${v.iso?"ASA "+v.iso:"set ASA"}${v.kind==="bw"?" · B/W":v.kind==="neg"?" · colour":""}</small></button>`).join("");
+  const r=rating();
+  $("filmNote").textContent=f.note+(r?" "+r:"");
+  $("filtBox").hidden=f.kind!=="bw";
+  $("filtList").innerHTML=FILTERS.map(x=>`<button type="button" value="${x.id}" aria-pressed="${x.id===s.filter}">${x.name}${x.stops?`<br>+${x.stops}`:""}</button>`).join("");
+}
+$("filmList").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  s.film=b.value;store("ucmeter.film",s.film);
+  const iso=film().iso;if(iso){s.iso=iso;store("ucmeter.iso",iso)}   // box speed; change it on the ASA pill to push or pull
+  ph("film_set",{film:s.film});filmUI();render();
+});
+$("filtList").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  s.filter=b.value;store("ucmeter.filter",s.filter);ph("filter_set",{filter:s.filter});filmUI();render();
+});
+
 function toggleHold(){
   if(s.ev==null)return;
-  s.hold=!s.hold;s.held=s.ev;
+  s.hold=!s.hold;s.held=s.ev;s.heldScene=s.scene;
   syncActions();
   render();
 }
@@ -719,7 +823,7 @@ $("shoot").onclick=()=>snapper?snap():isLive()?toggleHold():IOS?startPreview():s
 $("photoBtn").onclick=()=>$("file").click();
 $("file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)meterPhoto(f).catch(err=>showErr("The photo could not be read: "+err.message))};
 $("startBtn").onclick=()=>IOS?startPreview():startLive();
-$("gear").onclick=()=>{$("sheet").showModal();nDial.sync();offDial.sync()};
+$("gear").onclick=()=>{filmUI();$("sheet").showModal();nDial.sync();offDial.sync()};
 $("aboutBtn").onclick=()=>{$("about").showModal();ph("about_opened")};
 for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
 addEventListener("resize",()=>[apDial,speedDial,ndDial,evDial].forEach(d=>d.sync()));
