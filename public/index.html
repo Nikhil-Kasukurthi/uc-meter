@@ -58,7 +58,9 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-tap-highlight-color:transparent}
-body{height:100dvh;overflow:hidden;
+/* fixed + --app-h: an iOS home-screen app with a translucent status bar reports 100dvh
+   short by the status bar height, which left an empty band under the action bar */
+body{position:fixed;top:0;left:0;right:0;height:var(--app-h,100dvh);overflow:hidden;
   padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(12px + env(safe-area-inset-bottom,0px))}
 .app{height:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 button{font:inherit;color:inherit}
@@ -828,7 +830,13 @@ $("startBtn").onclick=()=>IOS?startPreview():startLive();
 $("gear").onclick=()=>{filmUI();$("sheet").showModal();nDial.sync();offDial.sync()};
 $("aboutBtn").onclick=()=>{$("about").showModal();ph("about_opened")};
 for(const id of ["sheet","isoSheet","about"])$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).close()});
-addEventListener("resize",()=>[apDial,speedDial,ndDial,evDial].forEach(d=>d.sync()));
+function fitHeight(){
+  // Home-screen app in portrait: the page owns the whole screen, even when iOS says otherwise.
+  const full=navigator.standalone&&matchMedia("(orientation:portrait)").matches;
+  document.documentElement.style.setProperty("--app-h",(full?Math.max(innerHeight,screen.height):innerHeight)+"px");
+}
+fitHeight();
+addEventListener("resize",()=>{fitHeight();[apDial,speedDial,ndDial,evDial].forEach(d=>d.sync())});
 
 if(IOS){
   $("startHint").textContent="Tap Start meter, aim, then tap Meter";
